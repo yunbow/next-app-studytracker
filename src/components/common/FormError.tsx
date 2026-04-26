@@ -1,0 +1,17 @@
+type Props = {
+  message?: string | null;
+};
+
+export function FormError({ message }: Props) {
+  if (!message) return null;
+
+  return (
+    <div 
+      className="p-3 text-sm text-destructive bg-destructive/10 rounded-md" 
+      role="alert"
+      aria-live="polite"
+    >
+      {message}
+    </div>
+  );
+}
