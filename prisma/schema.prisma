@@ -1,0 +1,530 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== Authentication ====================
+
+model User {
+  id             String    @id @default(cuid())
+  username       String    @unique
+  name           String?
+  email          String    @unique
+  emailVerified  DateTime?
+  password       String?
+  image          String?
+  bio            String?
+  isAdmin        Boolean   @default(false)
+  isSuspended    Boolean   @default(false)
+  isPrivate      Boolean   @default(false)
+
+  // 通知設定
+  notifyFollow   Boolean   @default(true)
+  notifyReaction Boolean   @default(true)
+  notifyComment  Boolean   @default(true)
+
+  // サブスクリプション
+  plan                   String    @default("free")
+  stripeCustomerId       String?   @unique
+  stripeSubscriptionId   String?   @unique
+  stripePriceId          String?
+  stripeCurrentPeriodEnd DateTime?
+
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  accounts       Account[]
+  sessions       Session[]
+  studySessions  StudySession[]
+  goals          Goal[]
+  reactions      Reaction[]
+  comments       Comment[]
+  badges         UserBadge[]
+
+  // Social relations
+  following      Follow[]        @relation("Following")
+  followers      Follow[]        @relation("Followers")
+  blocking       Block[]         @relation("Blocking")
+  blockedBy      Block[]         @relation("BlockedBy")
+
+  // Follow request relations
+  sentFollowRequests     FollowRequest[] @relation("FollowRequestSender")
+  receivedFollowRequests FollowRequest[] @relation("FollowRequestReceiver")
+
+  // Notification relations
+  notifications        Notification[] @relation("NotificationRecipient")
+  triggeredNotifications Notification[] @relation("NotificationActor")
+
+  // Extended features relations
+  ownedStudyGroups     StudyGroup[]   @relation("GroupOwner")
+  studyGroupMembers    StudyGroupMember[]
+  studyRoomParticipants StudyRoomParticipant[]
+  reminders            Reminder[]
+  habits               Habit[]
+  habitLogs            HabitLog[]
+  mentorProfile        MentorProfile?
+  mentoringSessions    MentoringSession[] @relation("MentorSessions")
+  menteeSessions       MentoringSession[] @relation("MenteeSessions")
+  mentorReviews        MentorReview[]     @relation("ReviewAuthor")
+  receivedReviews      MentorReview[]     @relation("ReviewTarget")
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ==================== Study Sessions ====================
+
+model StudySession {
+  id          String    @id @default(cuid())
+  startTime   DateTime
+  endTime     DateTime?
+  duration    Int?      // 学習時間（秒）
+  subject     String?   // 科目
+  description String?   // 説明・メモ
+  tags        String?   // カンマ区切りのタグ
+  visibility  String    @default("private") // public, followers, private
+  goalId      String?   // 関連する目標
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  goal        Goal?     @relation(fields: [goalId], references: [id], onDelete: SetNull)
+  reactions   Reaction[]
+  comments    Comment[]
+
+  @@index([userId])
+  @@index([startTime])
+  @@index([visibility])
+  @@map("study_sessions")
+}
+
+// ==================== Goals ====================
+
+model Goal {
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  targetHours Int?      // 目標時間（時間単位）
+  deadline    DateTime?
+  status      String    @default("active") // active, completed, archived
+  subject     String?   // 科目
+  tags        String?   // カンマ区切りのタグ
+  visibility  String    @default("private") // public, followers, private
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  userId      String
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  studySessions StudySession[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([visibility])
+  @@map("goals")
+}
+
+// ==================== Reactions ====================
+
+model Reaction {
+  id        String   @id @default(cuid())
+  type      String   // like, heart, clap, fire
+  createdAt DateTime @default(now())
+
+  // 作者退会時に SetNull に切替：reaction カウント自体は残し、
+  // author が「退会済みユーザー」として表示されるようにする（他者のセッションに付いた engagement を保護）。
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  sessionId String
+  session   StudySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  // nullable な userId への unique は NULL を複数許容するため、退会済みユーザーの
+  // 複数 reaction 行は共存可能。実在ユーザーの同一 type 二重 reaction は引き続き防止。
+  @@unique([userId, sessionId, type])
+  @@index([sessionId])
+  @@index([userId])
+  @@map("reactions")
+}
+
+// ==================== Comments ====================
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // 作者退会時に SetNull：他者のセッション上のスレッド文脈を保持する。
+  // UI 側は user==null を「退会済みユーザー」として表示する想定。
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  sessionId String
+  session   StudySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([userId])
+  @@map("comments")
+}
+
+// ==================== Social ====================
+
+model Follow {
+  id          String   @id @default(cuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower  User @relation("Following", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("Followers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@map("follows")
+}
+
+model FollowRequest {
+  id          String   @id @default(cuid())
+  senderId    String
+  receiverId  String
+  createdAt   DateTime @default(now())
+
+  sender   User @relation("FollowRequestSender", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("FollowRequestReceiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([senderId, receiverId])
+  @@map("follow_requests")
+}
+
+model Block {
+  id        String   @id @default(cuid())
+  blockerId String
+  blockedId String
+  createdAt DateTime @default(now())
+
+  blocker User @relation("Blocking", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked User @relation("BlockedBy", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@unique([blockerId, blockedId])
+  @@map("blocks")
+}
+
+// ==================== Notifications ====================
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String   // follow, reaction, comment
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // recipient は Cascade 据置：通知の受信側が退会すれば通知自体も意味を失う。
+  recipientId String
+  recipient   User   @relation("NotificationRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+
+  // actor は SetNull：actor（通知発信元ユーザー）が退会しても、
+  // recipient にとっての通知履歴は監査/思い出として残す。UI は「退会済みユーザー」表示。
+  actorId     String?
+  actor       User?  @relation("NotificationActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  sessionId   String?
+
+  @@index([recipientId])
+  @@index([recipientId, read])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+// ==================== Badges ====================
+
+model Badge {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String
+  icon        String
+  condition   String   // 達成条件の説明
+  createdAt   DateTime @default(now())
+
+  userBadges  UserBadge[]
+
+  @@map("badges")
+}
+
+model UserBadge {
+  id        String   @id @default(cuid())
+  earnedAt  DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  badgeId   String
+  badge     Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, badgeId])
+  @@index([userId])
+  @@map("user_badges")
+}
+
+// ==================== Study Groups ====================
+
+model StudyGroup {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  subject     String?
+  isPrivate   Boolean  @default(false)
+  maxMembers  Int      @default(50)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // オーナー退会時の Cascade はグループ丸ごと消滅させ他メンバーの履歴を巻き添え破壊するため危険。
+  // SetNull に切替。ownerId=null = 「オーナー不在（孤児）グループ」となり、
+  // transferGroupOwnership action でメンバーが新オーナーに昇格するまで編集不能扱いとする。
+  ownerId     String?
+  owner       User?    @relation("GroupOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+
+  members     StudyGroupMember[]
+  studyRooms  StudyRoom[]
+
+  @@index([ownerId])
+  @@index([subject])
+  @@map("study_groups")
+}
+
+model StudyGroupMember {
+  id        String   @id @default(cuid())
+  role      String   @default("member") // owner, admin, member
+  joinedAt  DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  groupId   String
+  group     StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, groupId])
+  @@index([groupId])
+  @@map("study_group_members")
+}
+
+model StudyRoom {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  startTime   DateTime
+  endTime     DateTime?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  groupId     String
+  group       StudyGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  participants StudyRoomParticipant[]
+
+  @@index([groupId])
+  @@index([isActive])
+  @@map("study_rooms")
+}
+
+model StudyRoomParticipant {
+  id        String   @id @default(cuid())
+  joinedAt  DateTime @default(now())
+  leftAt    DateTime?
+  duration  Int?     // 参加時間（秒）
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  roomId    String
+  room      StudyRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([roomId])
+  @@index([userId])
+  @@map("study_room_participants")
+}
+
+// ==================== Reminders & Habits ====================
+
+model Reminder {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  reminderTime DateTime
+  frequency   String   @default("once") // once, daily, weekly, custom
+  daysOfWeek  String?  // カンマ区切り（0=日曜, 6=土曜）
+  isActive    Boolean  @default(true)
+  lastSent    DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isActive])
+  @@map("reminders")
+}
+
+model Habit {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  targetDays  Int      @default(21) // 目標日数
+  frequency   String   @default("daily") // daily, weekly
+  isActive    Boolean  @default(true)
+  startDate   DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  logs        HabitLog[]
+
+  @@index([userId])
+  @@index([isActive])
+  @@map("habits")
+}
+
+model HabitLog {
+  id          String   @id @default(cuid())
+  date        DateTime @default(now())
+  completed   Boolean  @default(true)
+  note        String?
+  createdAt   DateTime @default(now())
+
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  habitId     String
+  habit       Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  @@unique([habitId, date])
+  @@index([habitId])
+  @@index([userId])
+  @@map("habit_logs")
+}
+
+// ==================== Mentor System ====================
+
+model MentorProfile {
+  id          String   @id @default(cuid())
+  bio         String?
+  expertise   String   // カンマ区切りの得意科目
+  experience  String?  // 経験・実績
+  availability String? // 対応可能時間
+  hourlyRate  Int?     // 時給（ポイント）
+  isActive    Boolean  @default(true)
+  rating      Float    @default(0.0)
+  totalReviews Int     @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  sessions    MentoringSession[]
+
+  @@index([isActive])
+  @@map("mentor_profiles")
+}
+
+model MentoringSession {
+  id          String   @id @default(cuid())
+  subject     String
+  description String?
+  scheduledAt DateTime
+  duration    Int      @default(60) // 分
+  status      String   @default("pending") // pending, confirmed, completed, cancelled
+  notes       String?  // セッション後のメモ
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // 退会時の Cascade は mentee / mentor 双方の受講履歴を破壊するため SetNull へ切替。
+  // 片方が退会してもセッション行を残すことで、もう片方のポートフォリオ/レビュー履歴を保護する。
+  mentorId    String?
+  mentor      User?    @relation("MentorSessions", fields: [mentorId], references: [id], onDelete: SetNull)
+
+  menteeId    String?
+  mentee      User?    @relation("MenteeSessions", fields: [menteeId], references: [id], onDelete: SetNull)
+
+  // MentorProfile も user.delete で Cascade 消滅するため、profile 経由の Cascade を断つ。
+  mentorProfileId String?
+  mentorProfile   MentorProfile? @relation(fields: [mentorProfileId], references: [id], onDelete: SetNull)
+
+  review      MentorReview?
+
+  @@index([mentorId])
+  @@index([menteeId])
+  @@index([status])
+  @@map("mentoring_sessions")
+}
+
+model MentorReview {
+  id          String   @id @default(cuid())
+  rating      Int      // 1-5
+  comment     String?
+  createdAt   DateTime @default(now())
+
+  sessionId   String   @unique
+  session     MentoringSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  // reviewer が退会しても、mentor 評価の公開情報としてレビュー本文は残す（Amazon/食べログ 型）。
+  reviewerId  String?
+  reviewer    User?    @relation("ReviewAuthor", fields: [reviewerId], references: [id], onDelete: SetNull)
+
+  // mentor 退会時も SetNull：そのセッションの mentee 側の受講履歴から辿れる関連レビューを保持。
+  mentorId    String?
+  mentor      User?    @relation("ReviewTarget", fields: [mentorId], references: [id], onDelete: SetNull)
+
+  @@index([mentorId])
+  @@map("mentor_reviews")
+}
