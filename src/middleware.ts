@@ -3,7 +3,7 @@ import type { NextRequest } from "next/server";
 import { auth } from "@/lib/auth";
 
 export async function middleware(request: NextRequest) {
-  const response = NextResponse.next();
+  const requestId = request.headers.get("x-request-id") ?? crypto.randomUUID();
 
   // CSRF対策
   if (["POST", "PUT", "DELETE", "PATCH"].includes(request.method)) {
@@ -57,9 +57,6 @@ export async function middleware(request: NextRequest) {
     .replace(/\s{2,}/g, " ")
     .trim();
 
-  response.headers.set("Content-Security-Policy", cspHeader);
-  response.headers.set("X-Nonce", nonce);
-
   // 認証チェック
   const protectedPaths = ["/dashboard", "/timer", "/goals", "/stats", "/profile", "/settings"];
   const isProtectedPath = protectedPaths.some((path) =>
@@ -75,6 +72,12 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  const response = NextResponse.next({
+    request: { headers: new Headers([...request.headers, ["x-request-id", requestId]]) },
+  });
+  response.headers.set("Content-Security-Policy", cspHeader);
+  response.headers.set("X-Nonce", nonce);
+  response.headers.set("x-request-id", requestId);
   return response;
 }
 
