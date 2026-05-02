@@ -9,6 +9,11 @@ const optionalString = <T extends z.ZodTypeAny>(inner: T) =>
     (v) => (typeof v === "string" && v.length === 0 ? undefined : v),
     inner.optional(),
   );
+const optionalUrl = () =>
+  z.preprocess(
+    (v) => (typeof v === "string" && v.length === 0 ? undefined : v),
+    z.url().optional(),
+  );
 const optionalEmail = () =>
   z.preprocess(
     (v) => (typeof v === "string" && v.length === 0 ? undefined : v),
@@ -39,6 +44,8 @@ const EnvSchema = z
     EMAIL_SERVER_USER: optionalString(z.string().min(1)),
     EMAIL_SERVER_PASSWORD: optionalString(z.string().min(1)),
     EMAIL_FROM: optionalEmail(),
+
+    NEXT_PUBLIC_APP_URL: optionalUrl(),
   })
   .superRefine((v, ctx) => {
     const pairs: Array<[string, Array<string | undefined>]> = [
