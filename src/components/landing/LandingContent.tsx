@@ -63,7 +63,7 @@ export function LandingContent() {
 
   return (
     <div className="bg-background flex flex-col">
-      <section className="relative flex min-h-[calc(100svh-6rem)] overflow-hidden">
+      <section className="relative flex min-h-[590px] overflow-hidden md:min-h-[560px]">
         <Image
           src="/landing/studytracker-hero.png"
           alt=""
@@ -73,7 +73,7 @@ export function LandingContent() {
           className="object-cover object-center"
         />
         <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,19,18,0.95)_0%,rgba(8,19,18,0.82)_34%,rgba(8,19,18,0.38)_62%,rgba(8,19,18,0.16)_100%)]" />
-        <div className="relative z-10 container mx-auto flex items-center px-4 py-16 sm:py-20">
+        <div className="relative z-10 container mx-auto flex items-center px-4 py-12 sm:py-16">
           <div className="max-w-3xl text-white">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-sm text-white/85 backdrop-blur">
               <CheckCircle2 className="h-4 w-4 text-emerald-200" />

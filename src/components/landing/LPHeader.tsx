@@ -47,25 +47,26 @@ export function LPHeader() {
 
   return (
     <header className="border-b">
-      <div className="container mx-auto flex h-16 items-center justify-between px-4">
+      <div className="container mx-auto flex h-16 items-center justify-between gap-3 px-4">
         <Link href="/" className="shrink-0">
           <BrandMark
             label={t.common.appName}
-            markSize={36}
-            labelClassName="text-xl"
+            markSize={32}
+            labelClassName="text-lg sm:text-xl"
           />
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 items-center gap-1 sm:gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
                 aria-label={t.accessibility.selectLanguage}
+                className="gap-1 px-2 sm:px-3"
               >
                 <Globe className="h-4 w-4" />
-                <span>{t.language[locale]}</span>
+                <span className="hidden sm:inline">{t.language[locale]}</span>
                 <ChevronDown className="h-3 w-3 opacity-50" />
               </Button>
             </DropdownMenuTrigger>
@@ -85,6 +86,7 @@ export function LPHeader() {
                 variant="ghost"
                 size="sm"
                 aria-label={t.accessibility.selectTheme}
+                className="hidden gap-1 px-2 sm:inline-flex sm:px-3"
               >
                 {themeIcon}
                 <span>{themeLabel}</span>
@@ -107,11 +109,11 @@ export function LPHeader() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Button asChild variant="outline">
+          <Button asChild variant="outline" className="hidden sm:inline-flex">
             <Link href="/register">{t.common.register}</Link>
           </Button>
 
-          <Button asChild variant="default">
+          <Button asChild variant="default" size="sm">
             <Link href="/login">{t.common.login}</Link>
           </Button>
         </div>
