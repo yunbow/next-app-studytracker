@@ -24,6 +24,7 @@ import {
   UserIcon,
   SettingsIcon,
 } from "./icons";
+import { BrandMark } from "./BrandMark";
 import { useTranslations } from "@/lib/i18n";
 
 type NavItem = {
@@ -35,11 +36,36 @@ type NavItem = {
 
 const getNavItems = (userId?: string): NavItem[] => [
   { labelKey: "home", href: "/dashboard", icon: <HomeIcon /> },
-  { labelKey: "timer", href: "/timer", icon: <TimerIcon />, authRequired: true },
-  { labelKey: "records", href: "/records", icon: <ClipboardIcon />, authRequired: true },
-  { labelKey: "goals", href: "/goals", icon: <TargetIcon />, authRequired: true },
-  { labelKey: "profile", href: userId ? `/users/${userId}` : "/dashboard", icon: <UserIcon />, authRequired: true },
-  { labelKey: "settings", href: "/settings", icon: <SettingsIcon />, authRequired: true },
+  {
+    labelKey: "timer",
+    href: "/timer",
+    icon: <TimerIcon />,
+    authRequired: true,
+  },
+  {
+    labelKey: "records",
+    href: "/records",
+    icon: <ClipboardIcon />,
+    authRequired: true,
+  },
+  {
+    labelKey: "goals",
+    href: "/goals",
+    icon: <TargetIcon />,
+    authRequired: true,
+  },
+  {
+    labelKey: "profile",
+    href: userId ? `/users/${userId}` : "/dashboard",
+    icon: <UserIcon />,
+    authRequired: true,
+  },
+  {
+    labelKey: "settings",
+    href: "/settings",
+    icon: <SettingsIcon />,
+    authRequired: true,
+  },
 ];
 
 export function Sidebar() {
@@ -75,18 +101,32 @@ export function Sidebar() {
     <>
       <aside
         className={cn(
-          "hidden md:flex flex-col border-r bg-background transition-all duration-300",
+          "bg-background hidden flex-col border-r transition-all duration-300 md:flex",
           isCollapsed ? "w-16" : "w-64"
         )}
         aria-label="Sidebar navigation"
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b">
-          {!isCollapsed && (
-            <Link href="/dashboard" className="font-bold text-lg">
-              {t.common.appName}
-            </Link>
+        <div
+          className={cn(
+            "flex border-b p-3",
+            isCollapsed
+              ? "flex-col items-center gap-2"
+              : "items-center justify-between"
           )}
+        >
+          <Link
+            href="/dashboard"
+            className={cn("shrink-0", isCollapsed && "mx-auto")}
+            aria-label={t.common.appName}
+          >
+            <BrandMark
+              label={t.common.appName}
+              showLabel={!isCollapsed}
+              markSize={32}
+              labelClassName="text-lg"
+            />
+          </Link>
           <Button
             variant="ghost"
             size="icon"
@@ -103,13 +143,13 @@ export function Sidebar() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-2 space-y-1" aria-label="Main navigation">
+        <nav className="flex-1 space-y-1 p-2" aria-label="Main navigation">
           {filteredNavItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-3 py-2 rounded-md transition-colors",
+                "flex items-center gap-3 rounded-md px-3 py-2 transition-colors",
                 pathname === item.href
                   ? "bg-accent text-accent-foreground"
                   : "hover:bg-accent hover:text-accent-foreground",
@@ -126,11 +166,11 @@ export function Sidebar() {
 
         {/* User Info */}
         {session && (
-          <div className="p-4 border-t">
+          <div className="border-t p-4">
             <button
               onClick={() => setShowLogoutDialog(true)}
               className={cn(
-                "flex items-center gap-3 w-full p-2 rounded-md hover:bg-accent transition-colors",
+                "hover:bg-accent flex w-full items-center gap-3 rounded-md p-2 transition-colors",
                 isCollapsed && "justify-center"
               )}
               aria-label={t.accessibility.userMenu}
@@ -139,11 +179,11 @@ export function Sidebar() {
                 <AvatarFallback>{getUserInitial()}</AvatarFallback>
               </Avatar>
               {!isCollapsed && (
-                <div className="flex-1 text-left overflow-hidden">
-                  <p className="text-sm font-medium truncate">
+                <div className="flex-1 overflow-hidden text-left">
+                  <p className="truncate text-sm font-medium">
                     {session.user?.name || t.common.nameNotSet}
                   </p>
-                  <p className="text-xs text-muted-foreground truncate">
+                  <p className="text-muted-foreground truncate text-xs">
                     {session.user?.email}
                   </p>
                 </div>
@@ -161,7 +201,10 @@ export function Sidebar() {
             <DialogDescription>{t.sidebar.logoutDescription}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowLogoutDialog(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setShowLogoutDialog(false)}
+            >
               {t.common.cancel}
             </Button>
             <Button onClick={handleLogout} className="gap-2">

@@ -76,12 +76,42 @@ export const ja = {
   },
   landing: {
     hero: {
+      badge: "集中・記録・振り返りをひとつに",
       title: "学習時間を記録して、目標を達成しよう",
       subtitle:
         "StudyTrackerは、ポモドーロタイマーで集中力を高め、学習データを可視化。目標設定とバッジシステムでモチベーションを維持します。",
+      metrics: {
+        focus: { value: "25分", label: "集中セッション" },
+        goals: { value: "週次", label: "進捗レビュー" },
+        badges: { value: "達成", label: "バッジで可視化" },
+      },
+    },
+    workflow: {
+      eyebrow: "Learning Loop",
+      title: "毎日の学習を、続けやすい流れに",
+      description:
+        "開始前の迷いを減らし、終わった学習を自然に記録。あとから見返せるデータとして積み上げます。",
+      timer: {
+        title: "タイマーを開始",
+        description:
+          "科目や目標を選んで学習を始めるだけ。集中時間をセッションとして残せます。",
+      },
+      review: {
+        title: "進捗を確認",
+        description:
+          "今日・今週の学習量、最近の記録、目標ごとの進み具合をダッシュボードで把握できます。",
+      },
+      keepGoing: {
+        title: "次の行動へつなげる",
+        description:
+          "目標、締切、バッジで継続を後押し。学習の成果を小さく確認しながら前に進めます。",
+      },
     },
     features: {
+      eyebrow: "Features",
       title: "主な機能",
+      description:
+        "タイマー、記録、目標、分析を分断せずに扱えるので、学習後の振り返りまでスムーズです。",
       timer: {
         title: "タイマー機能",
         description: "ポモドーロタイマーで集中力を高め、学習時間を自動記録。",
@@ -98,6 +128,29 @@ export const ja = {
         title: "バッジシステム",
         description: "達成度に応じてバッジを獲得。継続のモチベーションに。",
       },
+    },
+    outcome: {
+      eyebrow: "Dashboard",
+      title: "学習の状態が、すぐにわかる",
+      description:
+        "ダッシュボードでは、今日の学習、今週の合計、進行中の目標、最近の記録をまとめて確認できます。記録が増えるほど、次に何をするべきか判断しやすくなります。",
+      today: {
+        title: "今日の学習を把握",
+        description: "その日の積み上げを分単位で確認できます。",
+      },
+      week: {
+        title: "週ごとの傾向を確認",
+        description: "学習量の偏りや継続状況を振り返れます。",
+      },
+      next: {
+        title: "目標に紐づけて管理",
+        description: "科目や期限ごとの進捗を追跡できます。",
+      },
+    },
+    cta: {
+      title: "今日の学習から、記録を始めましょう",
+      description:
+        "タイマーを起動して学習を終えるだけで、振り返りに使えるデータが残ります。",
     },
   },
   profile: {
@@ -139,8 +192,7 @@ export const ja = {
     creator: "作成者",
   },
   cookie: {
-    message:
-      "当サイトでは、サービスの向上のためにCookieを使用しています。",
+    message: "当サイトでは、サービスの向上のためにCookieを使用しています。",
     accept: "同意する",
   },
 } as const;

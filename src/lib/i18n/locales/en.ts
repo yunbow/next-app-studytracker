@@ -39,7 +39,8 @@ export const en = {
   settings: {
     title: "Settings",
     appearance: "Appearance",
-    appearanceDescription: "Display settings such as language, theme, and font size",
+    appearanceDescription:
+      "Display settings such as language, theme, and font size",
     language: "Display Language",
     languageDescription: "Select the application display language",
     theme: "Theme",
@@ -50,7 +51,8 @@ export const en = {
     fontSizeMedium: "Medium",
     fontSizeLarge: "Large",
     colorVision: "Color Vision Support",
-    colorVisionDescription: "Display adjustments for color vision characteristics",
+    colorVisionDescription:
+      "Display adjustments for color vision characteristics",
     colorVisionNormal: "Normal",
     colorVisionProtanopia: "Protanopia (Red)",
     colorVisionDeuteranopia: "Deuteranopia (Green)",
@@ -76,12 +78,42 @@ export const en = {
   },
   landing: {
     hero: {
+      badge: "Focus, record, and review in one place",
       title: "Track Your Study Time, Achieve Your Goals",
       subtitle:
         "StudyTracker helps you stay focused with Pomodoro timer, visualize learning data, and maintain motivation with goal setting and badge system.",
+      metrics: {
+        focus: { value: "25m", label: "focus sessions" },
+        goals: { value: "Weekly", label: "progress reviews" },
+        badges: { value: "Wins", label: "shown as badges" },
+      },
+    },
+    workflow: {
+      eyebrow: "Learning Loop",
+      title: "A repeatable flow for daily study",
+      description:
+        "Reduce friction before you start, record sessions naturally when you finish, and turn each study block into data you can review later.",
+      timer: {
+        title: "Start the timer",
+        description:
+          "Choose a subject or goal and begin. Focused study time is saved as a session.",
+      },
+      review: {
+        title: "Review progress",
+        description:
+          "See today's study time, weekly totals, recent sessions, and progress toward active goals from the dashboard.",
+      },
+      keepGoing: {
+        title: "Keep momentum",
+        description:
+          "Goals, deadlines, and badges help you notice progress and decide what to study next.",
+      },
     },
     features: {
+      eyebrow: "Features",
       title: "Key Features",
+      description:
+        "Timer, records, goals, and analytics work together so the review process stays smooth after each session.",
       timer: {
         title: "Timer Function",
         description:
@@ -102,6 +134,29 @@ export const en = {
         description:
           "Earn badges based on achievements. Motivation for continuous learning.",
       },
+    },
+    outcome: {
+      eyebrow: "Dashboard",
+      title: "Understand your study status at a glance",
+      description:
+        "The dashboard brings together today's study, weekly totals, active goals, and recent records. As your history grows, it becomes easier to decide what to study next.",
+      today: {
+        title: "See today's effort",
+        description: "Check daily progress in minutes.",
+      },
+      week: {
+        title: "Review weekly trends",
+        description: "Spot consistency and uneven study patterns.",
+      },
+      next: {
+        title: "Connect work to goals",
+        description: "Track progress by subject and deadline.",
+      },
+    },
+    cta: {
+      title: "Start tracking from today's study session",
+      description:
+        "Start the timer, finish the session, and keep useful data for your next review.",
     },
   },
   profile: {

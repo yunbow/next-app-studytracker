@@ -5,11 +5,12 @@ import { Providers } from "@/components/common/Providers";
 import { AppShell } from "@/components/common/AppShell";
 import { CookieConsent } from "@/components/common/CookieConsent";
 import { Toaster } from "@/components/ui/sonner";
+import { APPLE_TOUCH_ICON_SRC, BRAND_ICON_SRC } from "@/lib/brand";
 import { getLocale } from "@/lib/i18n/server";
 import { env } from "@/lib/config/env";
 
 const APP_URL = env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-const SITE_NAME = "next-app-studytracker";
+const SITE_NAME = "StudyTracker";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,7 +22,6 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-
 const notoSansJp = Noto_Sans_JP({
   variable: "--font-noto-sans-jp",
   weight: ["400", "500", "700"],
@@ -31,7 +31,10 @@ const notoSansJp = Noto_Sans_JP({
 });
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
-  title: { default: "StudyTracker - 勉強時間トラッカー", template: `%s | ${SITE_NAME}` },
+  title: {
+    default: "StudyTracker - 勉強時間トラッカー",
+    template: `%s | ${SITE_NAME}`,
+  },
   description: "学習時間を記録・可視化して、目標達成をサポート",
   openGraph: {
     type: "website",
@@ -42,10 +45,15 @@ export const metadata: Metadata = {
     card: "summary_large_image",
   },
   alternates: { canonical: "/" },
-  robots: process.env.VERCEL_ENV === "production"
-    ? { index: true, follow: true }
-    : { index: false, follow: false },
-  icons: { icon: "/icon", apple: "/apple-icon" },
+  robots:
+    process.env.VERCEL_ENV === "production"
+      ? { index: true, follow: true }
+      : { index: false, follow: false },
+  icons: {
+    icon: BRAND_ICON_SRC,
+    shortcut: BRAND_ICON_SRC,
+    apple: APPLE_TOUCH_ICON_SRC,
+  },
 };
 
 export const viewport: Viewport = {

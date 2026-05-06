@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { BrandMark } from "@/components/common/BrandMark";
 import { useTranslations } from "@/lib/i18n/use-translations";
 import { useLocale } from "@/lib/i18n/use-locale";
 import { useTheme } from "next-themes";
@@ -47,8 +48,12 @@ export function LPHeader() {
   return (
     <header className="border-b">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
-        <Link href="/" className="text-xl font-bold">
-          {t.common.appName}
+        <Link href="/" className="shrink-0">
+          <BrandMark
+            label={t.common.appName}
+            markSize={36}
+            labelClassName="text-xl"
+          />
         </Link>
 
         <div className="flex items-center gap-2">
