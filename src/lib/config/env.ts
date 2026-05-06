@@ -46,6 +46,13 @@ const EnvSchema = z
     EMAIL_FROM: optionalEmail(),
 
     NEXT_PUBLIC_APP_URL: optionalUrl(),
+
+    // Cloudflare R2 (本番) / MinIO (ローカル) — 4つすべてセットするか、すべて未設定にすること
+    R2_ACCESS_KEY_ID: optionalString(z.string().min(1)),
+    R2_SECRET_ACCESS_KEY: optionalString(z.string().min(1)),
+    R2_BUCKET_NAME: optionalString(z.string().min(1)),
+    R2_ENDPOINT: optionalString(z.string().min(1)),
+    R2_PUBLIC_URL: optionalString(z.string().min(1)),
   })
   .superRefine((v, ctx) => {
     const pairs: Array<[string, Array<string | undefined>]> = [
@@ -63,6 +70,15 @@ const EnvSchema = z
         });
       }
     }
+    const r2Core = [v.R2_ACCESS_KEY_ID, v.R2_SECRET_ACCESS_KEY, v.R2_BUCKET_NAME, v.R2_ENDPOINT];
+    const r2Set = r2Core.filter((k) => k !== undefined && k.length > 0).length;
+    if (r2Set !== 0 && r2Set !== r2Core.length) {
+      ctx.addIssue({
+        code: "custom",
+        message: "R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY / R2_BUCKET_NAME / R2_ENDPOINT must be all-set or all-unset",
+      });
+    }
+
     const emailCore = [
       v.EMAIL_SERVER_HOST,
       v.EMAIL_SERVER_USER,

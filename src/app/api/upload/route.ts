@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
-import crypto from "crypto";
+import { uploadUserAvatar, R2_ENABLED } from "@/lib/storage/r2";
 
 const IMAGE_SIGNATURES: { type: string; ext: string; signatures: number[][] }[] = [
   { type: "image/jpeg", ext: "jpg", signatures: [[0xFF, 0xD8, 0xFF]] },
@@ -36,6 +34,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "認証が必要です" }, { status: 401 });
   }
 
+  if (!R2_ENABLED) {
+    return NextResponse.json(
+      { error: "ストレージが設定されていません" },
+      { status: 503 },
+    );
+  }
+
   try {
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
@@ -59,22 +64,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const extMap: Record<string, string> = {
-      "image/jpeg": "jpg",
-      "image/png": "png",
-      "image/gif": "gif",
-      "image/webp": "webp",
-    };
-    const safeExt = extMap[validatedImage.type] || "jpg";
-    const fileName = `${session.user.id}-${crypto.randomBytes(8).toString("hex")}.${safeExt}`;
-
-    const uploadDir = path.join(process.cwd(), "public", "uploads");
-    await mkdir(uploadDir, { recursive: true });
-
-    const filePath = path.join(uploadDir, fileName);
-    await writeFile(filePath, buffer);
-
-    return NextResponse.json({ url: `/uploads/${fileName}` });
+    const url = await uploadUserAvatar(session.user.id, buffer, validatedImage.type);
+    return NextResponse.json({ url });
   } catch (error) {
     console.error("Upload error:", error);
     return NextResponse.json({ error: "アップロードに失敗しました" }, { status: 500 });
