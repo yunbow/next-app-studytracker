@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -29,7 +29,7 @@ export default function PasswordChangePage() {
   };
 
   return (
-    <div className="container max-w-2xl py-6">
+    <div className="w-full max-w-2xl pb-6">
       <BackLink href="/settings" label="設定に戻る" />
       <h1 className="text-2xl font-bold mb-6">パスワード変更</h1>
       <Card>

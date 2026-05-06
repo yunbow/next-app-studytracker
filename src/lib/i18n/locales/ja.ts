@@ -21,7 +21,7 @@ export const ja = {
     deadline: "締切順",
   },
   nav: {
-    home: "ホーム",
+    home: "ダッシュボード",
     timer: "タイマー",
     records: "記録",
     goals: "目標",

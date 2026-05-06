@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTranslations } from "@/lib/i18n";
+import { FollowButton } from "./FollowButton";
 
 type StudySessionSummary = {
   id: string;
@@ -24,8 +25,15 @@ type ProfileContentProps = {
     image: string | null;
     email: string;
     createdAt: Date;
+    isPrivate: boolean;
+    _count: {
+      followers: number;
+      following: number;
+    };
   };
   isOwnProfile: boolean;
+  isFollowing: boolean;
+  isFollowRequested: boolean;
   studySessions?: StudySessionSummary[];
 };
 
@@ -51,11 +59,19 @@ function getImageUrl(src: string | null): string | undefined {
   return src;
 }
 
-export function ProfileContent({ user, isOwnProfile, studySessions = [] }: ProfileContentProps) {
+export function ProfileContent({
+  user,
+  isOwnProfile,
+  isFollowing,
+  isFollowRequested,
+  studySessions = [],
+}: ProfileContentProps) {
   const { t } = useTranslations();
 
   const displayName = user.name || t.common.nameNotSet;
   const joinDate = new Date(user.createdAt).toLocaleDateString();
+
+  const followStatus = isFollowing ? "following" : isFollowRequested ? "requested" : "none";
 
   return (
     <div className="space-y-4">
@@ -76,12 +92,30 @@ export function ProfileContent({ user, isOwnProfile, studySessions = [] }: Profi
               <p className="text-sm text-muted-foreground mt-1">
                 {t.profile.registeredAt}{joinDate}
               </p>
+              <div className="flex items-center gap-4 mt-2 text-sm">
+                <span>
+                  <span className="font-semibold">{user._count.followers}</span>
+                  <span className="text-muted-foreground ml-1">フォロワー</span>
+                </span>
+                <span>
+                  <span className="font-semibold">{user._count.following}</span>
+                  <span className="text-muted-foreground ml-1">フォロー中</span>
+                </span>
+              </div>
             </div>
-            {isOwnProfile && (
-              <Link href={`/users/${user.id}/edit`}>
-                <Button variant="outline">{t.profile.editProfile}</Button>
-              </Link>
-            )}
+            <div className="shrink-0">
+              {isOwnProfile ? (
+                <Link href={`/users/${user.id}/edit`}>
+                  <Button variant="outline" size="sm">{t.profile.editProfile}</Button>
+                </Link>
+              ) : (
+                <FollowButton
+                  targetUserId={user.id}
+                  initialStatus={followStatus}
+                  isPrivate={user.isPrivate}
+                />
+              )}
+            </div>
           </div>
 
           <div className="space-y-3 pt-4 border-t">

@@ -22,11 +22,11 @@ type NavItem = {
 };
 
 const getNavItems = (userId?: string): NavItem[] => [
-  { labelKey: "home", href: "/home", icon: <HomeIcon /> },
+  { labelKey: "home", href: "/dashboard", icon: <HomeIcon /> },
   { labelKey: "timer", href: "/timer", icon: <TimerIcon />, authRequired: true },
   { labelKey: "records", href: "/records", icon: <ClipboardIcon />, authRequired: true },
   { labelKey: "goals", href: "/goals", icon: <TargetIcon />, authRequired: true },
-  { labelKey: "profile", href: userId ? `/users/${userId}` : "/home", icon: <UserIcon />, authRequired: true },
+  { labelKey: "profile", href: userId ? `/users/${userId}` : "/dashboard", icon: <UserIcon />, authRequired: true },
   { labelKey: "settings", href: "/settings", icon: <SettingsIcon />, authRequired: true },
 ];
 

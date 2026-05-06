@@ -102,6 +102,10 @@ export function LPHeader() {
             </DropdownMenuContent>
           </DropdownMenu>
 
+          <Button asChild variant="outline">
+            <Link href="/register">{t.common.register}</Link>
+          </Button>
+
           <Button asChild variant="default">
             <Link href="/login">{t.common.login}</Link>
           </Button>

@@ -42,6 +42,7 @@ export function TimerContent({ activeSession, goals }: Props) {
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
   const [goalId, setGoalId] = useState<string>("");
+  const [visibility, setVisibility] = useState<"public" | "followers" | "private">("private");
   const [isLoading, setIsLoading] = useState(false);
 
   // Calculate initial elapsed if session is active
@@ -86,7 +87,7 @@ export function TimerContent({ activeSession, goals }: Props) {
     setIsLoading(true);
     const result = await stopTimer({
       sessionId,
-      visibility: "private",
+      visibility,
     });
     setIsLoading(false);
 
@@ -98,7 +99,7 @@ export function TimerContent({ activeSession, goals }: Props) {
     } else {
       toast.error(result.error);
     }
-  }, [sessionId, router]);
+  }, [sessionId, visibility, router]);
 
   return (
     <div className="space-y-6">
@@ -199,6 +200,23 @@ export function TimerContent({ activeSession, goals }: Props) {
                 </Select>
               </div>
             )}
+
+            <div className="space-y-2">
+              <Label>公開設定</Label>
+              <Select
+                value={visibility}
+                onValueChange={(v) => setVisibility(v as "public" | "followers" | "private")}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="private">非公開</SelectItem>
+                  <SelectItem value="followers">フォロワーのみ</SelectItem>
+                  <SelectItem value="public">公開</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </CardContent>
         </Card>
       )}

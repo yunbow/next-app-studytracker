@@ -24,8 +24,31 @@ type Session = {
   subject: string | null;
   description: string | null;
   tags: string | null;
+  visibility: string;
   goal: { id: string; title: string } | null;
 };
+
+function VisibilityBadge({ visibility }: { visibility: string }) {
+  if (visibility === "public") {
+    return (
+      <span className="text-xs px-1.5 py-0.5 rounded bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+        公開
+      </span>
+    );
+  }
+  if (visibility === "followers") {
+    return (
+      <span className="text-xs px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+        フォロワー
+      </span>
+    );
+  }
+  return (
+    <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+      非公開
+    </span>
+  );
+}
 
 function formatDuration(seconds: number): string {
   const h = Math.floor(seconds / 3600);
@@ -122,10 +145,11 @@ export function RecordsContent({ sessions }: { sessions: Session[] }) {
                     <CardContent className="pt-3 pb-3">
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 flex-wrap">
                             <p className="font-medium text-sm truncate">
                               {s.subject || "科目未設定"}
                             </p>
+                            <VisibilityBadge visibility={s.visibility} />
                             {s.goal && (
                               <span className="text-xs bg-muted px-2 py-0.5 rounded">
                                 {s.goal.title}

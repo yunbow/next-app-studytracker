@@ -1,4 +1,4 @@
-import { redirect, notFound } from "next/navigation";
+﻿import { redirect, notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ProfileContent } from "@/features/user/components/ProfileContent";
@@ -24,11 +24,41 @@ export default async function UserProfilePage({
       image: true,
       email: true,
       createdAt: true,
+      isPrivate: true,
+      _count: {
+        select: {
+          followers: true,
+          following: true,
+        },
+      },
     },
   });
   if (!user) notFound();
 
   const isOwnProfile = session.user.id === user.id;
+
+  const [followRelation, followRequest] = isOwnProfile
+    ? [null, null]
+    : await Promise.all([
+        prisma.follow.findUnique({
+          where: {
+            followerId_followingId: {
+              followerId: session.user.id,
+              followingId: id,
+            },
+          },
+          select: { id: true },
+        }),
+        prisma.followRequest.findUnique({
+          where: {
+            senderId_receiverId: {
+              senderId: session.user.id,
+              receiverId: id,
+            },
+          },
+          select: { id: true },
+        }),
+      ]);
 
   // このプロフィール所有者のセッションのうち、visibility ルール上 viewer が閲覧可能なものだけ取得。
   // sessionVisibilityWhereForViewer が public / followers / 自分自身を一元的にフィルタするため、
@@ -57,10 +87,12 @@ export default async function UserProfilePage({
   });
 
   return (
-    <div className="container max-w-2xl py-8">
+    <div className="w-full max-w-2xl pb-8">
       <ProfileContent
         user={user}
         isOwnProfile={isOwnProfile}
+        isFollowing={!!followRelation}
+        isFollowRequested={!!followRequest}
         studySessions={studySessions}
       />
     </div>

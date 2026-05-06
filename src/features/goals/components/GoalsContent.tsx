@@ -7,6 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -32,9 +39,32 @@ type Goal = {
   status: string;
   subject: string | null;
   tags: string | null;
+  visibility: string;
   createdAt: Date;
   sessionCount: number;
 };
+
+function VisibilityBadge({ visibility }: { visibility: string }) {
+  if (visibility === "public") {
+    return (
+      <span className="text-xs px-1.5 py-0.5 rounded bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+        公開
+      </span>
+    );
+  }
+  if (visibility === "followers") {
+    return (
+      <span className="text-xs px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+        フォロワー
+      </span>
+    );
+  }
+  return (
+    <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+      非公開
+    </span>
+  );
+}
 
 export function GoalsContent({ goals }: { goals: Goal[] }) {
   const router = useRouter();
@@ -48,6 +78,7 @@ export function GoalsContent({ goals }: { goals: Goal[] }) {
   const [targetHours, setTargetHours] = useState("");
   const [subject, setSubject] = useState("");
   const [deadline, setDeadline] = useState("");
+  const [goalVisibility, setGoalVisibility] = useState<"public" | "followers" | "private">("private");
 
   const activeGoals = goals.filter((g) => g.status === "active");
   const completedGoals = goals.filter((g) => g.status === "completed");
@@ -62,6 +93,7 @@ export function GoalsContent({ goals }: { goals: Goal[] }) {
       targetHours: targetHours ? parseInt(targetHours) : undefined,
       subject: subject || undefined,
       deadline: deadline ? new Date(deadline).toISOString() : undefined,
+      visibility: goalVisibility,
     });
     setIsLoading(false);
 
@@ -73,6 +105,7 @@ export function GoalsContent({ goals }: { goals: Goal[] }) {
       setTargetHours("");
       setSubject("");
       setDeadline("");
+      setGoalVisibility("private");
       router.refresh();
     } else {
       toast.error(result.error);
@@ -121,11 +154,14 @@ export function GoalsContent({ goals }: { goals: Goal[] }) {
           <div className="flex items-start justify-between mb-2">
             <div className="flex-1 min-w-0">
               <p className="font-semibold truncate">{goal.title}</p>
-              {goal.subject && (
-                <span className="text-xs bg-muted px-2 py-0.5 rounded">
-                  {goal.subject}
-                </span>
-              )}
+              <div className="flex items-center gap-1.5 mt-0.5">
+                <VisibilityBadge visibility={goal.visibility} />
+                {goal.subject && (
+                  <span className="text-xs bg-muted px-2 py-0.5 rounded">
+                    {goal.subject}
+                  </span>
+                )}
+              </div>
               {goal.description && (
                 <p className="text-sm text-muted-foreground mt-1">
                   {goal.description}
@@ -308,6 +344,22 @@ export function GoalsContent({ goals }: { goals: Goal[] }) {
                   onChange={(e) => setDeadline(e.target.value)}
                 />
               </div>
+            </div>
+            <div className="space-y-2">
+              <Label>公開設定</Label>
+              <Select
+                value={goalVisibility}
+                onValueChange={(v) => setGoalVisibility(v as "public" | "followers" | "private")}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="private">非公開</SelectItem>
+                  <SelectItem value="followers">フォロワーのみ</SelectItem>
+                  <SelectItem value="public">公開</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <DialogFooter>
               <Button

@@ -30,6 +30,7 @@ export const CreateGoalSchema = z.object({
   deadline: z.string().datetime().optional(),
   subject: z.string().max(100, "Subject too long").optional(),
   tags: z.string().max(200, "Tags too long").optional(),
+  visibility: z.enum(["public", "followers", "private"]).default("private"),
 });
 
 export const UpdateGoalSchema = z.object({
@@ -41,6 +42,7 @@ export const UpdateGoalSchema = z.object({
   status: z.enum(["active", "completed", "archived"]).optional(),
   subject: z.string().max(100, "Subject too long").optional(),
   tags: z.string().max(200, "Tags too long").optional(),
+  visibility: z.enum(["public", "followers", "private"]).optional(),
 });
 
 export const CreateCommentSchema = z.object({

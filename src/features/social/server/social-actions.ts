@@ -123,6 +123,7 @@ export async function followUser(
       "User followed"
     );
     revalidatePath("/timeline");
+    revalidatePath(`/users/${validated.targetUserId}`);
 
     return { success: true, data: undefined };
   } catch (error) {
@@ -155,11 +156,41 @@ export async function unfollowUser(targetUserId: string): Promise<ActionResult> 
       "User unfollowed"
     );
     revalidatePath("/timeline");
+    revalidatePath(`/users/${targetUserId}`);
 
     return { success: true, data: undefined };
   } catch (error) {
     logger.error({ error }, "Failed to unfollow user");
     return { success: false, error: "フォロー解除に失敗しました" };
+  }
+}
+
+/**
+ * フォローリクエストをキャンセル（送信者側）
+ */
+export async function cancelFollowRequest(targetUserId: string): Promise<ActionResult> {
+  try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return { success: false, error: "認証が必要です" };
+    }
+
+    await prisma.followRequest.delete({
+      where: {
+        senderId_receiverId: {
+          senderId: session.user.id,
+          receiverId: targetUserId,
+        },
+      },
+    });
+
+    logger.info({ userId: session.user.id, targetUserId }, "Follow request cancelled");
+    revalidatePath(`/users/${targetUserId}`);
+
+    return { success: true, data: undefined };
+  } catch (error) {
+    logger.error({ error }, "Failed to cancel follow request");
+    return { success: false, error: "フォローリクエストのキャンセルに失敗しました" };
   }
 }
 

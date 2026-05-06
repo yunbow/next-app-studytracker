@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { TimerContent } from "@/features/timer/components/TimerContent";
@@ -28,7 +28,7 @@ export default async function TimerPage() {
   ]);
 
   return (
-    <div className="container max-w-2xl py-6">
+    <div className="w-full max-w-2xl pb-6">
       <TimerContent activeSession={activeSession} goals={goals} />
     </div>
   );

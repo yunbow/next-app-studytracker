@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,7 +18,7 @@ export default async function ProfileSettingsPage() {
   if (!user) redirect("/login");
 
   return (
-    <div className="container max-w-2xl py-8">
+    <div className="w-full max-w-2xl pb-8">
       <BackLink href="/settings" label="設定に戻る" />
       <Card>
         <CardHeader><CardTitle className="text-2xl">プロフィール編集</CardTitle></CardHeader>

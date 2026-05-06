@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+﻿import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,7 +20,7 @@ export default async function LoginHistoryPage() {
   });
 
   return (
-    <div className="container max-w-2xl py-6">
+    <div className="w-full max-w-2xl pb-6">
       <BackLink href="/settings" label="設定に戻る" />
       <h1 className="text-2xl font-bold mb-6">ログイン履歴</h1>
       <Card>

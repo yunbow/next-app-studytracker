@@ -1,4 +1,4 @@
-import { redirect, notFound } from "next/navigation";
+﻿import { redirect, notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { ProfileEditForm } from "@/features/user/components/ProfileEditForm";
@@ -24,7 +24,7 @@ export default async function UserProfileEditPage({
   if (!user) notFound();
 
   return (
-    <div className="container max-w-2xl py-8">
+    <div className="w-full max-w-2xl pb-8">
       <BackLink href={`/users/${id}`} label="プロフィールに戻る" />
       <ProfileEditForm user={user} />
     </div>

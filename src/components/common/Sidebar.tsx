@@ -34,11 +34,11 @@ type NavItem = {
 };
 
 const getNavItems = (userId?: string): NavItem[] => [
-  { labelKey: "home", href: "/home", icon: <HomeIcon /> },
+  { labelKey: "home", href: "/dashboard", icon: <HomeIcon /> },
   { labelKey: "timer", href: "/timer", icon: <TimerIcon />, authRequired: true },
   { labelKey: "records", href: "/records", icon: <ClipboardIcon />, authRequired: true },
   { labelKey: "goals", href: "/goals", icon: <TargetIcon />, authRequired: true },
-  { labelKey: "profile", href: userId ? `/users/${userId}` : "/home", icon: <UserIcon />, authRequired: true },
+  { labelKey: "profile", href: userId ? `/users/${userId}` : "/dashboard", icon: <UserIcon />, authRequired: true },
   { labelKey: "settings", href: "/settings", icon: <SettingsIcon />, authRequired: true },
 ];
 
@@ -83,7 +83,7 @@ export function Sidebar() {
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b">
           {!isCollapsed && (
-            <Link href="/home" className="font-bold text-lg">
+            <Link href="/dashboard" className="font-bold text-lg">
               {t.common.appName}
             </Link>
           )}

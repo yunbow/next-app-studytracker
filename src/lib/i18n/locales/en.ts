@@ -21,7 +21,7 @@ export const en = {
     deadline: "Deadline",
   },
   nav: {
-    home: "Home",
+    home: "Dashboard",
     timer: "Timer",
     records: "Records",
     goals: "Goals",

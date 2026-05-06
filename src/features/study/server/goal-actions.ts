@@ -31,6 +31,7 @@ export async function createGoal(
         deadline: validated.deadline ? new Date(validated.deadline) : null,
         subject: validated.subject,
         tags: validated.tags,
+        visibility: validated.visibility,
         userId: session.user.id,
       },
     });
@@ -84,6 +85,7 @@ export async function updateGoal(input: UpdateGoalInput): Promise<ActionResult> 
         ...(validated.status && { status: validated.status }),
         ...(validated.subject !== undefined && { subject: validated.subject }),
         ...(validated.tags !== undefined && { tags: validated.tags }),
+        ...(validated.visibility && { visibility: validated.visibility }),
       },
     });
 

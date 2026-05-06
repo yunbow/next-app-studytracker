@@ -3,9 +3,9 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { HomeContent } from "@/features/home/components/HomeContent";
 
-export const metadata = { title: "ホーム | StudyTracker" };
+export const metadata = { title: "ダッシュボード | StudyTracker" };
 
-export default async function HomePage() {
+export default async function DashboardPage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
@@ -97,7 +97,7 @@ export default async function HomePage() {
   });
 
   return (
-    <div className="container max-w-4xl py-6">
+    <div className="w-full max-w-4xl pb-6">
       <HomeContent
         userName={session.user.name || ""}
         todayMinutes={todayMinutes}

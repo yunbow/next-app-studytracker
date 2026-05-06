@@ -151,6 +151,7 @@ model Goal {
   status      String    @default("active") // active, completed, archived
   subject     String?   // 科目
   tags        String?   // カンマ区切りのタグ
+  visibility  String    @default("private") // public, followers, private
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -161,6 +162,7 @@ model Goal {
 
   @@index([userId])
   @@index([status])
+  @@index([visibility])
   @@map("goals")
 }
 
