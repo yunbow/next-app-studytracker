@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { logger, logSecurityEvent } from "@/lib/logger";
 import { revalidatePath } from "next/cache";
 import type { ActionResult } from "@/lib/types/action-result";
+import { checkGoalLimit } from "@/lib/stripe/plan-gate";
 import {
   CreateGoalSchema,
   UpdateGoalSchema,
@@ -22,6 +23,9 @@ export async function createGoal(
     }
 
     const validated = CreateGoalSchema.parse(input);
+
+    const limitCheck = await checkGoalLimit(session.user.id);
+    if (!limitCheck.allowed) return { success: false, error: limitCheck.error };
 
     const goal = await prisma.goal.create({
       data: {

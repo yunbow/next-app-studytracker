@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { logger, logSecurityEvent } from "@/lib/logger";
 import type { ActionResult } from "@/lib/types/action-result";
 import { revalidatePath } from "next/cache";
+import { checkPlanGate } from "@/lib/stripe/plan-gate";
 import {
   CreateReminderSchema,
   UpdateReminderSchema,
@@ -29,6 +30,9 @@ export async function createReminder(
     if (!session?.user?.id) {
       return { success: false, error: "認証が必要です" };
     }
+
+    const planCheck = await checkPlanGate(session.user.id, "basic");
+    if (!planCheck.allowed) return { success: false, error: planCheck.error };
 
     const validated = CreateReminderSchema.parse(input);
 
@@ -177,6 +181,9 @@ export async function createHabit(
     if (!session?.user?.id) {
       return { success: false, error: "認証が必要です" };
     }
+
+    const planCheck = await checkPlanGate(session.user.id, "premium");
+    if (!planCheck.allowed) return { success: false, error: planCheck.error };
 
     const validated = CreateHabitSchema.parse(input);
 

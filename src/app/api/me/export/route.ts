@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { checkPlanGate } from "@/lib/stripe/plan-gate";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -36,6 +37,11 @@ export async function GET() {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
   const userId = session.user.id;
+
+  const planCheck = await checkPlanGate(userId, "basic");
+  if (!planCheck.allowed) {
+    return Response.json({ error: planCheck.error }, { status: 403 });
+  }
 
   const [
     user,

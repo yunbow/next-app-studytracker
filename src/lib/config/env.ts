@@ -53,6 +53,12 @@ const EnvSchema = z
     R2_BUCKET_NAME: optionalString(z.string().min(1)),
     R2_ENDPOINT: optionalString(z.string().min(1)),
     R2_PUBLIC_URL: optionalString(z.string().min(1)),
+
+    // Stripe — すべてセットするか、すべて未設定にすること
+    STRIPE_SECRET_KEY: optionalString(z.string().min(1)),
+    STRIPE_WEBHOOK_SECRET: optionalString(z.string().min(1)),
+    STRIPE_BASIC_PRICE_ID: optionalString(z.string().min(1)),
+    STRIPE_PREMIUM_PRICE_ID: optionalString(z.string().min(1)),
   })
   .superRefine((v, ctx) => {
     const pairs: Array<[string, Array<string | undefined>]> = [
@@ -76,6 +82,15 @@ const EnvSchema = z
       ctx.addIssue({
         code: "custom",
         message: "R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY / R2_BUCKET_NAME / R2_ENDPOINT must be all-set or all-unset",
+      });
+    }
+
+    const stripeCore = [v.STRIPE_SECRET_KEY, v.STRIPE_WEBHOOK_SECRET, v.STRIPE_BASIC_PRICE_ID, v.STRIPE_PREMIUM_PRICE_ID];
+    const stripeSet = stripeCore.filter((k) => k !== undefined && k.length > 0).length;
+    if (stripeSet !== 0 && stripeSet !== stripeCore.length) {
+      ctx.addIssue({
+        code: "custom",
+        message: "STRIPE_SECRET_KEY / STRIPE_WEBHOOK_SECRET / STRIPE_BASIC_PRICE_ID / STRIPE_PREMIUM_PRICE_ID must be all-set or all-unset",
       });
     }
 

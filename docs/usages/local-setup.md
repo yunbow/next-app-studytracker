@@ -85,7 +85,7 @@ openssl rand -base64 48
 
 ## 5. サービスの起動
 
-PostgreSQL と MinIO をまとめて起動します。
+PostgreSQL・MinIO・Stripe Mock をまとめて起動します。
 
 ```bash
 docker compose up -d
@@ -108,6 +108,26 @@ docker compose ps
 - バケット `studytracker` は `minio-init` コンテナが自動作成します。
 
 `.env.example` の `R2_*` デフォルト値はそのまま MinIO に向いているため、コピーするだけで使えます。
+
+### Stripe Mock について
+
+サブスクリプション課金機能のローカル開発用に [stripe/stripe-mock](https://github.com/stripe/stripe-mock) を使用します。
+
+- **HTTP エンドポイント**: `http://localhost:12111`
+- **HTTPS エンドポイント**: `https://localhost:12112`
+- 実際の Stripe API と同じインターフェースで Checkout セッション・Customer Portal の動作確認が可能です。
+
+`.env.example` の `STRIPE_*` デフォルト値はそのまま stripe-mock に向いているため、コピーするだけで使えます。
+
+```
+STRIPE_SECRET_KEY="sk_test_123"        # stripe-mock は sk_test_ 形式の任意の値を受け付ける
+STRIPE_BASIC_PRICE_ID="price_basic"    # stripe-mock は price_ 形式の任意の値を受け付ける
+STRIPE_PREMIUM_PRICE_ID="price_premium"
+STRIPE_MOCK_HOST="localhost"           # この変数がセットされると stripe-mock に接続する
+```
+
+> **注意**: stripe-mock は Stripe API 呼び出しのモックのみで、**ウェブフックは送信しません**。
+> ウェブフック (`/api/stripe/webhook`) のテストには Stripe CLI が必要です（後述）。
 
 ---
 
@@ -162,6 +182,7 @@ npm run dev
 | バンドル解析             | `npm run analyze`         | `ANALYZE=true` で `next build` を実行        |
 | DB マイグレーション作成  | `npm run db:migrate:dev -- --name <name>` | 新規 migration を生成    |
 | DB マイグレーション適用  | `npm run db:migrate:deploy` | CI / 本番用 (非対話)                       |
+| Stripe Webhook 転送      | `stripe listen --forward-to localhost:3000/api/stripe/webhook` | Stripe CLI 必須。ウェブフックのローカルテスト用 |
 
 ---
 
@@ -173,7 +194,7 @@ npm run dev
 | 再開                   | `docker compose start`          |                           |
 | 完全停止＋コンテナ削除 | `docker compose down`           | ボリュームは残る          |
 | **DB・ストレージリセット** | `docker compose down -v`    | ⚠ 全データ消失            |
-| ログ確認               | `docker compose logs -f db`     | MinIO は `-f minio`       |
+| ログ確認               | `docker compose logs -f db`     | MinIO は `-f minio`、Stripe Mock は `-f stripe-mock` |
 
 ハマったときの定番リセット:
 
@@ -248,6 +269,41 @@ npm run dev -- --port 3001
 ```
 
 `.env` の `AUTH_URL` も同じポートに合わせてください。
+
+### Stripe Mock に接続できない
+
+stripe-mock コンテナが起動しているか確認してください。
+
+```bash
+docker compose ps stripe-mock   # healthy か確認
+docker compose logs stripe-mock # エラーログを確認
+```
+
+`STRIPE_MOCK_HOST` が `.env` に設定されているか確認してください。
+
+```bash
+cat .env | grep STRIPE_MOCK_HOST
+```
+
+未設定の場合、アプリは本番 Stripe API に接続しようとします。
+
+### Webhook が届かない
+
+stripe-mock はウェブフックを送信しません。ウェブフックのローカルテストには Stripe CLI を使用してください。
+
+```bash
+# Stripe CLI のインストール (macOS)
+brew install stripe/stripe-cli/stripe
+
+# Stripe アカウントにログイン
+stripe login
+
+# ウェブフックをローカルに転送 (ターミナルを別タブで開いて実行)
+stripe listen --forward-to localhost:3000/api/stripe/webhook
+```
+
+`stripe listen` を実行すると `whsec_...` 形式のシークレットが表示されます。
+これを `.env` の `STRIPE_WEBHOOK_SECRET` に設定してください（ローカルテスト中のみ）。
 
 ### Playwright テストが Vitest で実行されてエラーになる
 

@@ -30,6 +30,13 @@ model User {
   notifyReaction Boolean   @default(true)
   notifyComment  Boolean   @default(true)
 
+  // サブスクリプション
+  plan                   String    @default("free")
+  stripeCustomerId       String?   @unique
+  stripeSubscriptionId   String?   @unique
+  stripePriceId          String?
+  stripeCurrentPeriodEnd DateTime?
+
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 

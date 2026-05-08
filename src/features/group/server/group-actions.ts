@@ -6,6 +6,7 @@ import { logger, logSecurityEvent } from "@/lib/logger";
 import type { ActionResult } from "@/lib/types/action-result";
 import { ERROR_CODES } from "@/lib/types/error-codes";
 import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
+import { checkPlanGate } from "@/lib/stripe/plan-gate";
 import { revalidatePath } from "next/cache";
 import {
   CreateStudyGroupSchema,
@@ -46,6 +47,9 @@ export async function createStudyGroup(
         code: ERROR_CODES.RATE_LIMIT_EXCEEDED,
       };
     }
+
+    const planCheck = await checkPlanGate(session.user.id, "premium");
+    if (!planCheck.allowed) return { success: false, error: planCheck.error };
 
     const validated = CreateStudyGroupSchema.parse(input);
 
@@ -250,6 +254,9 @@ export async function createStudyRoom(
     if (!session?.user?.id) {
       return { success: false, error: "認証が必要です" };
     }
+
+    const planCheck = await checkPlanGate(session.user.id, "premium");
+    if (!planCheck.allowed) return { success: false, error: planCheck.error };
 
     const validated = CreateStudyRoomSchema.parse(input);
 

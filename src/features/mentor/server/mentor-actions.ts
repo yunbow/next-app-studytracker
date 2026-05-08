@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { logger, logSecurityEvent } from "@/lib/logger";
 import type { ActionResult } from "@/lib/types/action-result";
 import { revalidatePath } from "next/cache";
+import { checkPlanGate } from "@/lib/stripe/plan-gate";
 import {
   CreateMentorProfileSchema,
   UpdateMentorProfileSchema,
@@ -31,6 +32,9 @@ export async function createMentorProfile(
     if (!session?.user?.id) {
       return { success: false, error: "認証が必要です" };
     }
+
+    const planCheck = await checkPlanGate(session.user.id, "premium");
+    if (!planCheck.allowed) return { success: false, error: planCheck.error };
 
     const validated = CreateMentorProfileSchema.parse(input);
 
@@ -115,6 +119,9 @@ export async function createMentoringSession(
     if (!session?.user?.id) {
       return { success: false, error: "認証が必要です" };
     }
+
+    const planCheck = await checkPlanGate(session.user.id, "premium");
+    if (!planCheck.allowed) return { success: false, error: planCheck.error };
 
     const validated = CreateMentoringSessionSchema.parse(input);
 
