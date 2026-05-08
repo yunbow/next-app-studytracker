@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
+import { checkRateLimit, RATE_LIMITS } from "@/lib/rate-limit";
 
 const registerSchema = z
   .object({
@@ -42,6 +43,15 @@ async function generateUniqueUsername(): Promise<string> {
 
 export async function POST(request: NextRequest) {
   try {
+    const ip = request.headers.get("x-forwarded-for") ?? request.headers.get("x-real-ip") ?? "unknown";
+    const allowed = checkRateLimit(`auth:register:${ip}`, RATE_LIMITS.AUTH);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "リクエストが多すぎます。しばらく経ってからお試しください。" },
+        { status: 429 }
+      );
+    }
+
     const body = await request.json();
     const validatedData = registerSchema.parse(body);
     const { name, email, password } = validatedData;

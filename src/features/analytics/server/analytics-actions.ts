@@ -24,11 +24,10 @@ export async function getAnalyticsByPeriod(
     }
 
     const validated = AnalyticsPeriodSchema.parse(input);
-    const targetUserId = validated.userId || session.user.id;
 
     const sessions = await prisma.studySession.findMany({
       where: {
-        userId: targetUserId,
+        userId: session.user.id,
         startTime: {
           gte: new Date(validated.startDate),
           lte: new Date(validated.endDate),
@@ -88,7 +87,7 @@ export async function getAnalyticsByPeriod(
     );
 
     logger.info(
-      { userId: targetUserId, period: `${validated.startDate} - ${validated.endDate}` },
+      { userId: session.user.id, period: `${validated.startDate} - ${validated.endDate}` },
       "Analytics retrieved"
     );
 
@@ -122,7 +121,6 @@ export async function getSubjectAnalytics(
     }
 
     const validated = SubjectAnalyticsSchema.parse(input);
-    const targetUserId = validated.userId || session.user.id;
 
     // 期間を計算
     const now = new Date();
@@ -137,7 +135,7 @@ export async function getSubjectAnalytics(
 
     const sessions = await prisma.studySession.findMany({
       where: {
-        userId: targetUserId,
+        userId: session.user.id,
         startTime: { gte: startDate },
         endTime: { not: null },
       },
