@@ -134,6 +134,23 @@
   background-color: var(--card) !important;
 }
 
+@keyframes shimmer {
+  from { background-position: -200% center; }
+  to { background-position: 200% center; }
+}
+
+.skeleton {
+  border-radius: calc(var(--radius) - 2px);
+  background: linear-gradient(
+    90deg,
+    var(--muted) 25%,
+    color-mix(in oklch, var(--muted) 70%, white) 50%,
+    var(--muted) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+}
+
 /* Respect the user OS "reduce motion" preference.
  * Wildcard reset is the widely-accepted pragma (MDN / a11y-project):
  *   - 0.01ms (not 0ms) keeps animation/transition end-events firing so JS
