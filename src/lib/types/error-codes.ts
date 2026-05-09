@@ -61,7 +61,7 @@ export type ErrorCode = (typeof ERROR_CODES)[keyof typeof ERROR_CODES];
 export interface ApiError {
   code: ErrorCode;
   message: string;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   requestId?: string;
 }
 
@@ -71,7 +71,7 @@ export interface ApiError {
 export function createErrorResponse(
   code: ErrorCode,
   message: string,
-  details?: Record<string, any>
+  details?: Record<string, unknown>
 ): ApiError {
   return {
     code,

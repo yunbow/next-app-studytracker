@@ -13,7 +13,7 @@ export default async function ProfileSettingsPage() {
 
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { id: true, username: true, name: true },
+    select: { id: true, username: true, name: true, image: true },
   });
   if (!user) redirect("/login");
 

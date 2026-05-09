@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useTranslations } from "@/lib/i18n";
 
 type Props = {
   userName: string;
@@ -48,8 +47,6 @@ export function HomeContent({
   activeTimer,
   recentSessions,
 }: Props) {
-  const { t } = useTranslations();
-
   return (
     <div className="space-y-6">
       <div>

@@ -413,7 +413,7 @@ export async function leaveStudyRoom(
  */
 export async function searchGroups(
   input: SearchGroupsInput
-): Promise<ActionResult<any>> {
+): Promise<ActionResult<unknown>> {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -457,7 +457,7 @@ export async function searchGroups(
 /**
  * ユーザーのグループ一覧を取得
  */
-export async function getUserGroups(): Promise<ActionResult<any>> {
+export async function getUserGroups(): Promise<ActionResult<unknown>> {
   try {
     const session = await auth();
     if (!session?.user?.id) {

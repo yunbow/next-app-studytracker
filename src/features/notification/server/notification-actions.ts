@@ -113,7 +113,7 @@ export async function getUnreadNotificationCount(): Promise<ActionResult<number>
 export async function getNotifications(
   limit: number = 20,
   cursor?: string
-): Promise<ActionResult<any>> {
+): Promise<ActionResult<unknown>> {
   try {
     const session = await auth();
     if (!session?.user?.id) {

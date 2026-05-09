@@ -11,12 +11,25 @@ import {
   type SubjectAnalyticsInput,
 } from "../schema/analytics-schema";
 
+type DailyStat = { date: string; totalMinutes: number; sessionCount: number };
+type SubjectStat = { subject: string; totalMinutes: number; sessionCount: number };
+type TimeOfDayStat = { period: string; totalMinutes: number; sessionCount: number };
+
+type AnalyticsByPeriodResult = {
+  totalMinutes: number;
+  totalHours: number;
+  sessionCount: number;
+  dailyStats: DailyStat[];
+  subjectStats: SubjectStat[];
+  timeOfDayStats: TimeOfDayStat[];
+};
+
 /**
  * 期間別統計を取得
  */
 export async function getAnalyticsByPeriod(
   input: AnalyticsPeriodInput
-): Promise<ActionResult<any>> {
+): Promise<ActionResult<AnalyticsByPeriodResult>> {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -45,7 +58,7 @@ export async function getAnalyticsByPeriod(
     });
 
     // 日別集計
-    const dailyStats = sessions.reduce((acc: any, session) => {
+    const dailyStats = sessions.reduce<Record<string, DailyStat>>((acc, session) => {
       const date = session.startTime.toISOString().split("T")[0];
       if (!acc[date]) {
         acc[date] = { date, totalMinutes: 0, sessionCount: 0 };
@@ -56,7 +69,7 @@ export async function getAnalyticsByPeriod(
     }, {});
 
     // 科目別集計
-    const subjectStats = sessions.reduce((acc: any, session) => {
+    const subjectStats = sessions.reduce<Record<string, SubjectStat>>((acc, session) => {
       const subject = session.subject || "未分類";
       if (!acc[subject]) {
         acc[subject] = { subject, totalMinutes: 0, sessionCount: 0 };
@@ -67,7 +80,7 @@ export async function getAnalyticsByPeriod(
     }, {});
 
     // 時間帯別集計
-    const timeOfDayStats = sessions.reduce((acc: any, session) => {
+    const timeOfDayStats = sessions.reduce<Record<string, TimeOfDayStat>>((acc, session) => {
       const hour = session.startTime.getHours();
       let period = "夜";
       if (hour >= 6 && hour < 12) period = "朝";
@@ -113,7 +126,7 @@ export async function getAnalyticsByPeriod(
  */
 export async function getSubjectAnalytics(
   input: SubjectAnalyticsInput
-): Promise<ActionResult<any>> {
+): Promise<ActionResult<SubjectStat[]>> {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -124,7 +137,7 @@ export async function getSubjectAnalytics(
 
     // 期間を計算
     const now = new Date();
-    let startDate = new Date();
+    const startDate = new Date();
     if (validated.period === "week") {
       startDate.setDate(now.getDate() - 7);
     } else if (validated.period === "month") {
@@ -145,7 +158,7 @@ export async function getSubjectAnalytics(
       },
     });
 
-    const subjectStats = sessions.reduce((acc: any, session) => {
+    const subjectStats = sessions.reduce<Record<string, SubjectStat>>((acc, session) => {
       const subject = session.subject || "未分類";
       if (!acc[subject]) {
         acc[subject] = { subject, totalMinutes: 0, sessionCount: 0 };

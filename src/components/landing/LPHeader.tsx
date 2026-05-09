@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import { BrandMark } from "@/components/common/BrandMark";
 import { useTranslations } from "@/lib/i18n/use-translations";
@@ -15,15 +15,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+const noopSubscribe = () => () => {};
+const getMounted = () => true;
+const getServerMounted = () => false;
+
 export function LPHeader() {
   const { t } = useTranslations();
   const { locale, setLocale } = useLocale();
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const mounted = useSyncExternalStore(noopSubscribe, getMounted, getServerMounted);
 
   const themeLabel = mounted
     ? theme === "dark"

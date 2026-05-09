@@ -22,7 +22,7 @@ import {
  */
 export async function getAdvancedAnalytics(
   input: GetAdvancedAnalyticsInput
-): Promise<ActionResult<any>> {
+): Promise<ActionResult<unknown>> {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -127,7 +127,7 @@ export async function getAdvancedAnalytics(
  */
 export async function getEfficiencyScore(
   input: GetEfficiencyScoreInput
-): Promise<ActionResult<any>> {
+): Promise<ActionResult<unknown>> {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -138,7 +138,7 @@ export async function getEfficiencyScore(
     const targetUserId = validated.userId || session.user.id;
 
     const now = new Date();
-    let startDate = new Date();
+    const startDate = new Date();
     if (validated.period === "week") {
       startDate.setDate(now.getDate() - 7);
     } else if (validated.period === "month") {
@@ -188,7 +188,7 @@ export async function getEfficiencyScore(
  */
 export async function getSubjectBalance(
   input: GetSubjectBalanceInput
-): Promise<ActionResult<any>> {
+): Promise<ActionResult<unknown>> {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -199,7 +199,7 @@ export async function getSubjectBalance(
     const targetUserId = validated.userId || session.user.id;
 
     const now = new Date();
-    let startDate = new Date();
+    const startDate = new Date();
     if (validated.period === "week") {
       startDate.setDate(now.getDate() - 7);
     } else if (validated.period === "month") {
@@ -260,7 +260,7 @@ export async function getSubjectBalance(
  */
 export async function predictGoalAchievement(
   input: PredictGoalAchievementInput
-): Promise<ActionResult<any>> {
+): Promise<ActionResult<unknown>> {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -345,7 +345,7 @@ export async function predictGoalAchievement(
  */
 export async function generateMonthlyReport(
   input: GenerateMonthlyReportInput
-): Promise<ActionResult<any>> {
+): Promise<ActionResult<unknown>> {
   try {
     const session = await auth();
     if (!session?.user?.id) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useSyncExternalStore } from "react";
 import type { Locale } from "./types";
 import { defaultLocale } from "./types";
 import { translations } from "./locales";
@@ -13,28 +13,48 @@ type LocaleContextType = {
 
 const LocaleContext = createContext<LocaleContextType | undefined>(undefined);
 
-export function LocaleProvider({ children }: { children: React.ReactNode }) {
-  const [locale, setLocaleState] = useState<Locale>(defaultLocale);
+const localeStore = (() => {
+  const listeners = new Set<() => void>();
+  let overrideLocale: Locale | null = null;
 
-  useEffect(() => {
-    const savedLocale = document.cookie
+  function readCookieLocale(): Locale | null {
+    if (typeof document === "undefined") return null;
+    const saved = document.cookie
       .split("; ")
       .find((row) => row.startsWith("locale="))
       ?.split("=")[1] as Locale | undefined;
+    return saved ?? null;
+  }
 
-    if (savedLocale) {
-      setLocaleState(savedLocale);
-    }
-  }, []);
-
-  const setLocale = (newLocale: Locale) => {
-    setLocaleState(newLocale);
-    document.cookie = `locale=${newLocale}; path=/; max-age=31536000`;
+  return {
+    subscribe(listener: () => void) {
+      listeners.add(listener);
+      return () => listeners.delete(listener);
+    },
+    getSnapshot(): Locale {
+      return overrideLocale ?? readCookieLocale() ?? defaultLocale;
+    },
+    getServerSnapshot(): Locale {
+      return defaultLocale;
+    },
+    setLocale(newLocale: Locale) {
+      overrideLocale = newLocale;
+      document.cookie = `locale=${newLocale}; path=/; max-age=31536000`;
+      listeners.forEach((listener) => listener());
+    },
   };
+})();
+
+export function LocaleProvider({ children }: { children: React.ReactNode }) {
+  const locale = useSyncExternalStore(
+    localeStore.subscribe,
+    localeStore.getSnapshot,
+    localeStore.getServerSnapshot
+  );
 
   return (
     <LocaleContext.Provider
-      value={{ locale, setLocale, t: translations[locale] }}
+      value={{ locale, setLocale: localeStore.setLocale, t: translations[locale] }}
     >
       {children}
     </LocaleContext.Provider>

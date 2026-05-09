@@ -355,7 +355,7 @@ export async function createMentorReview(
  */
 export async function searchMentors(
   input: SearchMentorsInput
-): Promise<ActionResult<any>> {
+): Promise<ActionResult<unknown>> {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -399,7 +399,7 @@ export async function searchMentors(
 /**
  * ユーザーのメンタリングセッション一覧を取得
  */
-export async function getUserMentoringSessions(): Promise<ActionResult<any>> {
+export async function getUserMentoringSessions(): Promise<ActionResult<unknown>> {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -445,7 +445,7 @@ export async function getUserMentoringSessions(): Promise<ActionResult<any>> {
 /**
  * メンタープロフィールを取得
  */
-export async function getMentorProfile(userId?: string): Promise<ActionResult<any>> {
+export async function getMentorProfile(userId?: string): Promise<ActionResult<unknown>> {
   try {
     const session = await auth();
     if (!session?.user?.id) {

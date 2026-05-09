@@ -94,7 +94,6 @@ export async function GET() {
 
   if (!allOk) {
     // logger が無いアプリ (todo) でも動作するよう console を使う。
-    // eslint-disable-next-line no-console
     console.error("[health] degraded", body);
   }
 

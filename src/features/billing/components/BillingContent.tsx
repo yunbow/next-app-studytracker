@@ -36,7 +36,7 @@ export function BillingContent({
     setLoading(plan);
     const result = await createCheckoutSessionAction(plan);
     if (result.success) {
-      window.location.href = result.data.url;
+      window.location.assign(result.data.url);
     } else {
       toast.error(result.error);
       setLoading(null);
@@ -47,7 +47,7 @@ export function BillingContent({
     setLoading("portal");
     const result = await createPortalSessionAction();
     if (result.success) {
-      window.location.href = result.data.url;
+      window.location.assign(result.data.url);
     } else {
       toast.error(result.error);
       setLoading(null);

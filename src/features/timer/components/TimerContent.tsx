@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,10 +34,18 @@ function formatElapsed(seconds: number): string {
   return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
 }
 
+function subscribeTick(listener: () => void) {
+  const id = setInterval(listener, 1000);
+  return () => clearInterval(id);
+}
+const getNow = () => Date.now();
+const getServerNow = () => 0;
+
 export function TimerContent({ activeSession, goals }: Props) {
   const router = useRouter();
-  const [elapsed, setElapsed] = useState(0);
-  const [isRunning, setIsRunning] = useState(!!activeSession);
+  const [startMs, setStartMs] = useState<number | null>(
+    activeSession ? new Date(activeSession.startTime).getTime() : null
+  );
   const [sessionId, setSessionId] = useState(activeSession?.id || null);
   const [subject, setSubject] = useState("");
   const [description, setDescription] = useState("");
@@ -45,23 +53,9 @@ export function TimerContent({ activeSession, goals }: Props) {
   const [visibility, setVisibility] = useState<"public" | "followers" | "private">("private");
   const [isLoading, setIsLoading] = useState(false);
 
-  // Calculate initial elapsed if session is active
-  useEffect(() => {
-    if (activeSession) {
-      const start = new Date(activeSession.startTime).getTime();
-      const now = Date.now();
-      setElapsed(Math.floor((now - start) / 1000));
-    }
-  }, [activeSession]);
-
-  // Timer tick
-  useEffect(() => {
-    if (!isRunning) return;
-    const interval = setInterval(() => {
-      setElapsed((prev) => prev + 1);
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [isRunning]);
+  const now = useSyncExternalStore(subscribeTick, getNow, getServerNow);
+  const isRunning = startMs !== null;
+  const elapsed = startMs && now > 0 ? Math.max(0, Math.floor((now - startMs) / 1000)) : 0;
 
   const handleStart = useCallback(async () => {
     setIsLoading(true);
@@ -74,8 +68,7 @@ export function TimerContent({ activeSession, goals }: Props) {
 
     if (result.success) {
       setSessionId(result.data.sessionId);
-      setIsRunning(true);
-      setElapsed(0);
+      setStartMs(Date.now());
       toast.success("タイマーを開始しました");
     } else {
       toast.error(result.error);
@@ -92,7 +85,7 @@ export function TimerContent({ activeSession, goals }: Props) {
     setIsLoading(false);
 
     if (result.success) {
-      setIsRunning(false);
+      setStartMs(null);
       setSessionId(null);
       toast.success("学習を記録しました");
       router.refresh();

@@ -76,7 +76,7 @@ export function createCookieContext<T extends string>(
         setValueInternal(savedValue);
       }
       applyEffect?.(savedValue);
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    }, []);
 
     const setValue = useCallback((value: T) => {
       setValueInternal(value);

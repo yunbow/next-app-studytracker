@@ -9,17 +9,17 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { useTranslations } from "@/lib/i18n/use-translations";
+
+const noopSubscribe = () => () => {};
+const getMounted = () => true;
+const getServerMounted = () => false;
 
 export function ThemeSwitcher() {
   const { theme, setTheme } = useTheme();
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(noopSubscribe, getMounted, getServerMounted);
   const { t } = useTranslations();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const themeLabel = mounted
     ? theme === "dark"

@@ -238,7 +238,7 @@ export async function checkAndAwardBadges(
  */
 export async function getUserBadges(
   userId?: string
-): Promise<ActionResult<any>> {
+): Promise<ActionResult<unknown>> {
   try {
     const session = await auth();
     if (!session?.user?.id) {

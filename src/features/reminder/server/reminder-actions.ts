@@ -151,7 +151,7 @@ export async function deleteReminder(id: string): Promise<ActionResult> {
 /**
  * ユーザーのリマインダー一覧を取得
  */
-export async function getUserReminders(): Promise<ActionResult<any>> {
+export async function getUserReminders(): Promise<ActionResult<unknown>> {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -428,7 +428,7 @@ export async function getHabitStreak(habitId: string): Promise<ActionResult<numb
 /**
  * ユーザーの習慣一覧を取得
  */
-export async function getUserHabits(): Promise<ActionResult<any>> {
+export async function getUserHabits(): Promise<ActionResult<unknown>> {
   try {
     const session = await auth();
     if (!session?.user?.id) {

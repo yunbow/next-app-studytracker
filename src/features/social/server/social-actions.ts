@@ -307,7 +307,7 @@ export async function rejectFollowRequest(requestId: string): Promise<ActionResu
  */
 export async function getTimeline(
   input: GetTimelineInput
-): Promise<ActionResult<any>> {
+): Promise<ActionResult<unknown>> {
   try {
     const session = await auth();
     if (!session?.user?.id) {
@@ -394,7 +394,7 @@ export async function getTimeline(
  */
 export async function searchUsers(
   input: SearchUsersInput
-): Promise<ActionResult<any>> {
+): Promise<ActionResult<unknown>> {
   try {
     const session = await auth();
     if (!session?.user?.id) {

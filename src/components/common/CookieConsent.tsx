@@ -1,23 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import { useTranslations } from "@/lib/i18n/use-translations";
 
+const noopSubscribe = () => () => {};
+const getStoredConsent = () => localStorage.getItem("cookie-consent");
+const getServerConsent = () => "server";
+
 export function CookieConsent() {
   const { t } = useTranslations();
-  const [showConsent, setShowConsent] = useState(false);
-
-  useEffect(() => {
-    const consent = localStorage.getItem("cookie-consent");
-    if (!consent) {
-      setShowConsent(true);
-    }
-  }, []);
+  const storedConsent = useSyncExternalStore(
+    noopSubscribe,
+    getStoredConsent,
+    getServerConsent
+  );
+  const [dismissed, setDismissed] = useState(false);
+  const showConsent = storedConsent === null && !dismissed;
 
   const acceptCookies = () => {
     localStorage.setItem("cookie-consent", "accepted");
-    setShowConsent(false);
+    setDismissed(true);
   };
 
   if (!showConsent) return null;

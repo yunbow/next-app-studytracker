@@ -1,4 +1,4 @@
-import { expect, vi, type Mock } from "vitest";
+import { expect, type Mock } from "vitest";
 import type { Session } from "next-auth";
 
 type ActionResult<T> =
@@ -26,6 +26,9 @@ export function mockSession(overrides?: Partial<Session["user"]>): Session {
       email: "test@example.com",
       name: "Test User",
       image: null,
+      username: "test-user",
+      isAdmin: false,
+      isSuspended: false,
       ...overrides,
     },
     expires: new Date(Date.now() + 86_400_000).toISOString(),

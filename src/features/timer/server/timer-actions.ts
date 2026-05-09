@@ -133,7 +133,7 @@ export async function stopTimer(
 /**
  * 進行中のタイマーを取得
  */
-export async function getActiveTimer(): Promise<ActionResult<any>> {
+export async function getActiveTimer(): Promise<ActionResult<unknown>> {
   try {
     const session = await auth();
     if (!session?.user?.id) {
