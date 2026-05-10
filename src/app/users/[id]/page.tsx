@@ -6,14 +6,22 @@ import { sessionVisibilityWhereForViewer } from "@/features/study/server/visibil
 
 export const metadata = { title: "プロフィール" };
 
+const PAGE_SIZE = 20;
+
 export default async function UserProfilePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ page?: string }>;
 }) {
   const { id } = await params;
+  const { page: pageParam } = await searchParams;
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
+
+  const currentPage = Math.max(1, Number(pageParam) || 1);
+  const skip = (currentPage - 1) * PAGE_SIZE;
 
   const user = await prisma.user.findUnique({
     where: { id },
@@ -65,26 +73,32 @@ export default async function UserProfilePage({
   // visibility=public セッションが「誰からも見える」という仕様がここで初めて実効化する
   // （旧実装ではタイムラインがフォロー絞り込みの内側に public を閉じ込めており観測点がなかった）。
   const viewerWhere = await sessionVisibilityWhereForViewer(session.user.id);
-  const studySessions = await prisma.studySession.findMany({
-    where: {
-      AND: [
-        { userId: user.id },
-        { endTime: { not: null } },
-        viewerWhere,
-      ],
-    },
-    orderBy: { startTime: "desc" },
-    take: 20,
-    select: {
-      id: true,
-      startTime: true,
-      endTime: true,
-      duration: true,
-      subject: true,
-      description: true,
-      visibility: true,
-    },
-  });
+  const sessionsWhere = {
+    AND: [
+      { userId: user.id },
+      { endTime: { not: null } },
+      viewerWhere,
+    ],
+  };
+  const [studySessions, sessionsTotal] = await Promise.all([
+    prisma.studySession.findMany({
+      where: sessionsWhere,
+      orderBy: { startTime: "desc" },
+      skip,
+      take: PAGE_SIZE,
+      select: {
+        id: true,
+        startTime: true,
+        endTime: true,
+        duration: true,
+        subject: true,
+        description: true,
+        visibility: true,
+      },
+    }),
+    prisma.studySession.count({ where: sessionsWhere }),
+  ]);
+  const totalPages = Math.ceil(sessionsTotal / PAGE_SIZE);
 
   return (
     <div className="w-full max-w-2xl pb-8">
@@ -94,6 +108,11 @@ export default async function UserProfilePage({
         isFollowing={!!followRelation}
         isFollowRequested={!!followRequest}
         studySessions={studySessions}
+        sessionsPagination={{
+          currentPage,
+          totalPages,
+          basePath: `/users/${user.id}`,
+        }}
       />
     </div>
   );

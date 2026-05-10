@@ -6,6 +6,7 @@ declare module "next-auth" {
     username?: string;
     isAdmin?: boolean;
     isSuspended?: boolean;
+    plan?: string;
   }
 
   interface Session {
@@ -17,6 +18,7 @@ declare module "next-auth" {
       username: string;
       isAdmin: boolean;
       isSuspended: boolean;
+      plan: string;
     };
   }
 }
@@ -27,5 +29,6 @@ declare module "next-auth/jwt" {
     username?: string;
     isAdmin?: boolean;
     isSuspended?: boolean;
+    plan?: string;
   }
 }

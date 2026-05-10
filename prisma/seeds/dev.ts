@@ -9,13 +9,14 @@ export async function seedDev(prisma: PrismaClient) {
 
   const alice = await prisma.user.upsert({
     where: { email: "alice@example.com" },
-    update: {},
+    update: { plan: "premium" },
     create: {
       username: "alice",
       name: "Alice",
       email: "alice@example.com",
       password,
       bio: "フルスタック開発者を目指して毎日学習中。",
+      plan: "premium",
     },
   });
 
@@ -31,7 +32,20 @@ export async function seedDev(prisma: PrismaClient) {
     },
   });
 
-  console.log("✓ users seeded (alice, bob)");
+  const charlie = await prisma.user.upsert({
+    where: { email: "charlie@example.com" },
+    update: { plan: "basic" },
+    create: {
+      username: "charlie",
+      name: "Charlie",
+      email: "charlie@example.com",
+      password,
+      bio: "クラウド/インフラエンジニアを目指して学習中。",
+      plan: "basic",
+    },
+  });
+
+  console.log("✓ users seeded (alice, bob, charlie)");
 
   await prisma.follow.upsert({
     where: { followerId_followingId: { followerId: alice.id, followingId: bob.id } },
@@ -42,6 +56,26 @@ export async function seedDev(prisma: PrismaClient) {
     where: { followerId_followingId: { followerId: bob.id, followingId: alice.id } },
     update: {},
     create: { followerId: bob.id, followingId: alice.id },
+  });
+  await prisma.follow.upsert({
+    where: { followerId_followingId: { followerId: alice.id, followingId: charlie.id } },
+    update: {},
+    create: { followerId: alice.id, followingId: charlie.id },
+  });
+  await prisma.follow.upsert({
+    where: { followerId_followingId: { followerId: charlie.id, followingId: alice.id } },
+    update: {},
+    create: { followerId: charlie.id, followingId: alice.id },
+  });
+  await prisma.follow.upsert({
+    where: { followerId_followingId: { followerId: bob.id, followingId: charlie.id } },
+    update: {},
+    create: { followerId: bob.id, followingId: charlie.id },
+  });
+  await prisma.follow.upsert({
+    where: { followerId_followingId: { followerId: charlie.id, followingId: bob.id } },
+    update: {},
+    create: { followerId: charlie.id, followingId: bob.id },
   });
 
   const aliceGoal = await prisma.goal.upsert({
@@ -71,6 +105,21 @@ export async function seedDev(prisma: PrismaClient) {
       subject: "データサイエンス",
       tags: "Python,機械学習,データ分析",
       userId: bob.id,
+    },
+  });
+
+  const charlieGoal = await prisma.goal.upsert({
+    where: { id: "seed-goal-charlie" },
+    update: {},
+    create: {
+      id: "seed-goal-charlie",
+      title: "クラウドインフラエンジニアになる",
+      description: "AWS・Docker・Kubernetes を習得してインフラエンジニアを目指す",
+      targetHours: 450,
+      deadline: new Date("2025-12-31"),
+      subject: "クラウドインフラ",
+      tags: "AWS,Docker,Kubernetes",
+      userId: charlie.id,
     },
   });
 
@@ -176,7 +225,57 @@ export async function seedDev(prisma: PrismaClient) {
     });
   }
 
-  console.log("✓ study sessions seeded (alice×3, bob×3)");
+  const charlieSessions = [
+    {
+      id: "seed-session-charlie-1",
+      startTime: new Date("2025-01-11T10:00:00Z"),
+      endTime: new Date("2025-01-11T12:00:00Z"),
+      duration: 7200,
+      subject: "AWS",
+      description:
+        "AWS の主要サービス（EC2 / S3 / IAM）を学習。マネジメントコンソールから実際にインスタンスを立ち上げてみた。",
+      tags: "AWS,EC2,S3",
+      visibility: "public",
+      goalId: charlieGoal.id,
+      userId: charlie.id,
+    },
+    {
+      id: "seed-session-charlie-2",
+      startTime: new Date("2025-01-14T14:00:00Z"),
+      endTime: new Date("2025-01-14T16:00:00Z"),
+      duration: 7200,
+      subject: "Docker",
+      description:
+        "Dockerfile からイメージをビルドし、docker-compose で複数コンテナを連携。ボリュームとネットワークの概念を整理。",
+      tags: "Docker,コンテナ,docker-compose",
+      visibility: "public",
+      goalId: charlieGoal.id,
+      userId: charlie.id,
+    },
+    {
+      id: "seed-session-charlie-3",
+      startTime: new Date("2025-01-17T10:00:00Z"),
+      endTime: new Date("2025-01-17T12:30:00Z"),
+      duration: 9000,
+      subject: "Kubernetes",
+      description:
+        "minikube で K8s クラスタを構築し、Pod / Deployment / Service マニフェストを書いてデプロイ。kubectl の基本操作を習得。",
+      tags: "Kubernetes,kubectl,Pod",
+      visibility: "public",
+      goalId: charlieGoal.id,
+      userId: charlie.id,
+    },
+  ];
+
+  for (const session of charlieSessions) {
+    await prisma.studySession.upsert({
+      where: { id: session.id },
+      update: {},
+      create: session,
+    });
+  }
+
+  console.log("✓ study sessions seeded (alice×3, bob×3, charlie×3)");
 
   const comments = [
     {
@@ -206,6 +305,34 @@ export async function seedDev(prisma: PrismaClient) {
         "scikit-learn の決定木、私も試してみたいです。可視化ツールもあわせて使うと分かりやすくなりますよ！",
       userId: alice.id,
       sessionId: "seed-session-bob-2",
+    },
+    {
+      id: "seed-comment-5",
+      content:
+        "AWS の入門にちょうどよい構成ですね。IAM のポリシー設計は最初から意識しておくと後々楽です！",
+      userId: alice.id,
+      sessionId: "seed-session-charlie-1",
+    },
+    {
+      id: "seed-comment-6",
+      content:
+        "Docker と機械学習環境の相性は抜群ですよね。私も実験ごとにコンテナを切り替えてます。",
+      userId: bob.id,
+      sessionId: "seed-session-charlie-2",
+    },
+    {
+      id: "seed-comment-7",
+      content:
+        "Node.js のミドルウェア理解できると、Express アプリのデバッグが一気に楽になりますね！",
+      userId: charlie.id,
+      sessionId: "seed-session-alice-3",
+    },
+    {
+      id: "seed-comment-8",
+      content:
+        "pandas での集計、自分も最近よく書いてます。matplotlib との組み合わせは可視化の王道ですね。",
+      userId: charlie.id,
+      sessionId: "seed-session-bob-3",
     },
   ];
 
@@ -256,6 +383,42 @@ export async function seedDev(prisma: PrismaClient) {
       userId: alice.id,
       sessionId: "seed-session-bob-3",
     },
+    {
+      id: "seed-reaction-7",
+      type: "like",
+      userId: alice.id,
+      sessionId: "seed-session-charlie-1",
+    },
+    {
+      id: "seed-reaction-8",
+      type: "fire",
+      userId: bob.id,
+      sessionId: "seed-session-charlie-2",
+    },
+    {
+      id: "seed-reaction-9",
+      type: "heart",
+      userId: bob.id,
+      sessionId: "seed-session-charlie-3",
+    },
+    {
+      id: "seed-reaction-10",
+      type: "clap",
+      userId: charlie.id,
+      sessionId: "seed-session-alice-2",
+    },
+    {
+      id: "seed-reaction-11",
+      type: "fire",
+      userId: charlie.id,
+      sessionId: "seed-session-alice-3",
+    },
+    {
+      id: "seed-reaction-12",
+      type: "like",
+      userId: charlie.id,
+      sessionId: "seed-session-bob-2",
+    },
   ];
 
   for (const reaction of reactions) {
@@ -270,7 +433,7 @@ export async function seedDev(prisma: PrismaClient) {
 
   const firstStepBadge = await prisma.badge.findUnique({ where: { name: "First Step" } });
   if (firstStepBadge) {
-    for (const userId of [alice.id, bob.id]) {
+    for (const userId of [alice.id, bob.id, charlie.id]) {
       await prisma.userBadge.upsert({
         where: { userId_badgeId: { userId, badgeId: firstStepBadge.id } },
         update: {},
@@ -279,6 +442,6 @@ export async function seedDev(prisma: PrismaClient) {
     }
   }
 
-  console.log("✓ badges awarded to alice, bob");
+  console.log("✓ badges awarded to alice, bob, charlie");
   console.log("✓ dev seed complete");
 }

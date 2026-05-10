@@ -8,6 +8,8 @@ import { ChevronLeft, ChevronRight, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { PLANS, type Plan } from "@/lib/stripe/plans";
 import {
   Dialog,
   DialogContent,
@@ -97,6 +99,20 @@ export function Sidebar() {
     return "U";
   };
 
+  const currentPlan = ((session?.user?.plan as Plan | undefined) ?? "free") as Plan;
+  const planLabel = PLANS[currentPlan]?.name ?? "Free";
+  const planBadgeClass: Record<Plan, string> = {
+    free: "",
+    basic: "",
+    premium:
+      "border-transparent bg-gradient-to-r from-amber-400 to-amber-600 text-white hover:from-amber-400 hover:to-amber-600",
+  };
+  const planBadgeVariant: Record<Plan, "secondary" | "default" | "outline"> = {
+    free: "secondary",
+    basic: "default",
+    premium: "default",
+  };
+
   return (
     <>
       <aside
@@ -180,9 +196,20 @@ export function Sidebar() {
               </Avatar>
               {!isCollapsed && (
                 <div className="flex-1 overflow-hidden text-left">
-                  <p className="truncate text-sm font-medium">
-                    {session.user?.name || t.common.nameNotSet}
-                  </p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="truncate text-sm font-medium">
+                      {session.user?.name || t.common.nameNotSet}
+                    </p>
+                    <Badge
+                      variant={planBadgeVariant[currentPlan]}
+                      className={cn(
+                        "shrink-0 px-1.5 py-0 text-[10px] leading-4",
+                        planBadgeClass[currentPlan],
+                      )}
+                    >
+                      {planLabel}
+                    </Badge>
+                  </div>
                   <p className="text-muted-foreground truncate text-xs">
                     {session.user?.email}
                   </p>

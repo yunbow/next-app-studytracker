@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { GoalsContent } from "@/features/goals/components/GoalsContent";
 import { PublicGoalList } from "@/features/goals/components/PublicGoalList";
 import { PageTabs } from "@/components/common/PageTabs";
+import { Pagination } from "@/components/common/Pagination";
 
 export const metadata = { title: "目標 | StudyTracker" };
 
@@ -12,43 +13,54 @@ const TABS = [
   { label: "みんなの目標", value: "everyone" },
 ];
 
+const PAGE_SIZE = 20;
+
 export default async function GoalsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; page?: string }>;
 }) {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
 
-  const { tab } = await searchParams;
+  const { tab, page: pageParam } = await searchParams;
   const activeTab = tab === "everyone" ? "everyone" : "mine";
+  const currentPage = Math.max(1, Number(pageParam) || 1);
+  const skip = (currentPage - 1) * PAGE_SIZE;
+  const tabSearchParams = activeTab === "everyone" ? { tab: "everyone" } : {};
 
   if (activeTab === "everyone") {
-    const publicGoals = await prisma.goal.findMany({
-      where: {
-        userId: { not: session.user.id },
-        status: "active",
-        visibility: "public",
-        user: { isSuspended: false },
-      },
-      orderBy: { createdAt: "desc" },
-      take: 50,
-      select: {
-        id: true,
-        title: true,
-        description: true,
-        targetHours: true,
-        deadline: true,
-        subject: true,
-        studySessions: {
-          where: { endTime: { not: null } },
-          select: { duration: true },
+    const where = {
+      userId: { not: session.user.id },
+      status: "active",
+      visibility: "public",
+      user: { isSuspended: false },
+    } as const;
+    const [publicGoals, total] = await Promise.all([
+      prisma.goal.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: PAGE_SIZE,
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          targetHours: true,
+          deadline: true,
+          subject: true,
+          studySessions: {
+            where: { endTime: { not: null } },
+            select: { duration: true },
+          },
+          user: {
+            select: { id: true, name: true, username: true, image: true },
+          },
         },
-        user: {
-          select: { id: true, name: true, username: true, image: true },
-        },
-      },
-    });
+      }),
+      prisma.goal.count({ where }),
+    ]);
+    const totalPages = Math.ceil(total / PAGE_SIZE);
 
     const publicGoalsWithProgress = publicGoals.map((g) => {
       const totalMinutes = g.studySessions.reduce(
@@ -71,30 +83,43 @@ export default async function GoalsPage({
       <div className="w-full max-w-4xl pb-6">
         <PageTabs tabs={TABS} basePath="/goals" activeTab={activeTab} />
         <PublicGoalList goals={publicGoalsWithProgress} />
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          basePath="/goals"
+          searchParams={tabSearchParams}
+        />
       </div>
     );
   }
 
-  const goals = await prisma.goal.findMany({
-    where: { userId: session.user.id },
-    select: {
-      id: true,
-      title: true,
-      description: true,
-      targetHours: true,
-      deadline: true,
-      status: true,
-      subject: true,
-      tags: true,
-      visibility: true,
-      createdAt: true,
-      studySessions: {
-        where: { endTime: { not: null } },
-        select: { duration: true },
+  const where = { userId: session.user.id } as const;
+  const [goals, total] = await Promise.all([
+    prisma.goal.findMany({
+      where,
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        targetHours: true,
+        deadline: true,
+        status: true,
+        subject: true,
+        tags: true,
+        visibility: true,
+        createdAt: true,
+        studySessions: {
+          where: { endTime: { not: null } },
+          select: { duration: true },
+        },
       },
-    },
-    orderBy: [{ status: "asc" }, { createdAt: "desc" }],
-  });
+      orderBy: [{ status: "asc" }, { createdAt: "desc" }],
+      skip,
+      take: PAGE_SIZE,
+    }),
+    prisma.goal.count({ where }),
+  ]);
+  const totalPages = Math.ceil(total / PAGE_SIZE);
 
   const goalsWithProgress = goals.map((g) => {
     const totalMinutes = g.studySessions.reduce(
@@ -122,6 +147,12 @@ export default async function GoalsPage({
     <div className="w-full max-w-4xl pb-6">
       <PageTabs tabs={TABS} basePath="/goals" activeTab={activeTab} />
       <GoalsContent goals={goalsWithProgress} />
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        basePath="/goals"
+        searchParams={tabSearchParams}
+      />
     </div>
   );
 }

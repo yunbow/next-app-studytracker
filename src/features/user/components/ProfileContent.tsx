@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Pagination } from "@/components/common/Pagination";
 import { useTranslations } from "@/lib/i18n";
 import { FollowButton } from "./FollowButton";
 
@@ -35,6 +36,11 @@ type ProfileContentProps = {
   isFollowing: boolean;
   isFollowRequested: boolean;
   studySessions?: StudySessionSummary[];
+  sessionsPagination?: {
+    currentPage: number;
+    totalPages: number;
+    basePath: string;
+  };
 };
 
 const visibilityLabels: Record<string, string> = {
@@ -65,6 +71,7 @@ export function ProfileContent({
   isFollowing,
   isFollowRequested,
   studySessions = [],
+  sessionsPagination,
 }: ProfileContentProps) {
   const { t } = useTranslations();
 
@@ -147,33 +154,42 @@ export function ProfileContent({
                 : "閲覧可能なセッションがありません"}
             </p>
           ) : (
-            <ul className="space-y-2">
-              {studySessions.map((s) => (
-                <li key={s.id} className="flex items-start justify-between border-b pb-2 last:border-0">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium truncate">
-                        {s.subject || "無題"}
-                      </p>
-                      {isOwnProfile && (
-                        <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
-                          {visibilityLabels[s.visibility] || s.visibility}
-                        </span>
+            <>
+              <ul className="space-y-2">
+                {studySessions.map((s) => (
+                  <li key={s.id} className="flex items-start justify-between border-b pb-2 last:border-0">
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium truncate">
+                          {s.subject || "無題"}
+                        </p>
+                        {isOwnProfile && (
+                          <span className="text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                            {visibilityLabels[s.visibility] || s.visibility}
+                          </span>
+                        )}
+                      </div>
+                      {s.description && (
+                        <p className="text-xs text-muted-foreground truncate mt-0.5">{s.description}</p>
                       )}
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {new Date(s.startTime).toLocaleDateString()}
+                      </p>
                     </div>
-                    {s.description && (
-                      <p className="text-xs text-muted-foreground truncate mt-0.5">{s.description}</p>
-                    )}
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {new Date(s.startTime).toLocaleDateString()}
-                    </p>
-                  </div>
-                  <span className="text-sm font-medium ml-2 whitespace-nowrap">
-                    {formatDuration(s.duration)}
-                  </span>
-                </li>
-              ))}
-            </ul>
+                    <span className="text-sm font-medium ml-2 whitespace-nowrap">
+                      {formatDuration(s.duration)}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              {sessionsPagination && (
+                <Pagination
+                  currentPage={sessionsPagination.currentPage}
+                  totalPages={sessionsPagination.totalPages}
+                  basePath={sessionsPagination.basePath}
+                />
+              )}
+            </>
           )}
         </CardContent>
       </Card>

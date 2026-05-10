@@ -145,10 +145,28 @@ npm run db:migrate:dev
 npm run db:migrate:status
 ```
 
+### 開発用シード投入
+
+ログイン可能なテストユーザーやサンプルデータ（目標・学習セッション・コメント・リアクション・バッジ）を一括で投入します。
+
+```bash
+npm run db:seed:dev
+```
+
+投入後は次のアカウントでログインできます（パスワードは全員 `password123`）:
+
+| ユーザー | メール              | プラン  |
+| -------- | ------------------- | ------- |
+| Alice    | alice@example.com   | premium |
+| Bob      | bob@example.com     | free    |
+| Charlie  | charlie@example.com | basic   |
+
+> 本番向けの最小データ（バッジマスタ等）のみを投入したい場合は `npm run db:seed:prod` を使用します。`SEED_MODE` 未指定時は `NODE_ENV` に応じて自動判定されます。
+
 DB の中身を GUI で確認したい場合:
 
 ```bash
-npx prisma studio
+npm run prisma:studio
 ```
 
 `http://localhost:5555` で Prisma Studio が開きます。
@@ -172,6 +190,7 @@ npm run dev
 | 本番ビルド               | `npm run build`           |                                              |
 | 本番ビルド起動           | `npm start`               | `build` 後に実行                             |
 | Lint                     | `npm run lint`            | ESLint                                       |
+| 型チェック               | `npm run type-check`      | `tsc --noEmit`                               |
 | フォーマット適用         | `npm run format`          | Prettier                                     |
 | フォーマット確認のみ     | `npm run format:check`    | CI で使用                                    |
 | 全テスト (1 回)          | `npm test`                | Vitest                                       |
@@ -182,6 +201,11 @@ npm run dev
 | バンドル解析             | `npm run analyze`         | `ANALYZE=true` で `next build` を実行        |
 | DB マイグレーション作成  | `npm run db:migrate:dev -- --name <name>` | 新規 migration を生成    |
 | DB マイグレーション適用  | `npm run db:migrate:deploy` | CI / 本番用 (非対話)                       |
+| DB マイグレーション状態  | `npm run db:migrate:status` |                                            |
+| シード投入 (dev)         | `npm run db:seed:dev`     | テストユーザー・サンプルデータ投入           |
+| シード投入 (prod)        | `npm run db:seed:prod`    | 本番最小データ (バッジマスタ等) のみ         |
+| Prisma Studio            | `npm run prisma:studio`   | `http://localhost:5555` で DB GUI を開く     |
+| 静的画像アップロード     | `npm run upload:static`   | `public/` 配下の画像を MinIO/R2 へアップロード |
 | Stripe Webhook 転送      | `stripe listen --forward-to localhost:3000/api/stripe/webhook` | Stripe CLI 必須。ウェブフックのローカルテスト用 |
 
 ---
@@ -202,6 +226,7 @@ npm run dev
 docker compose down -v
 docker compose up -d
 npm run db:migrate:dev
+npm run db:seed:dev
 ```
 
 ### 複数プロジェクトの同時起動
@@ -243,6 +268,7 @@ cat .env | grep DATABASE_URL
 docker compose down -v
 docker compose up -d
 npm run db:migrate:dev
+npm run db:seed:dev
 ```
 
 ### 画像アップロードに失敗する

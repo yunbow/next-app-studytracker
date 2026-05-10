@@ -118,12 +118,13 @@ export const authConfig: NextAuthConfig = {
         if (user.email) {
           const dbUser = await prisma.user.findUnique({
             where: { email: user.email },
-            select: { username: true, isAdmin: true, isSuspended: true },
+            select: { username: true, isAdmin: true, isSuspended: true, plan: true },
           });
           if (dbUser) {
             token.username = dbUser.username;
             token.isAdmin = dbUser.isAdmin;
             token.isSuspended = dbUser.isSuspended;
+            token.plan = dbUser.plan;
           }
         }
       }
@@ -131,12 +132,13 @@ export const authConfig: NextAuthConfig = {
       if (trigger === "update" && token.id) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },
-          select: { username: true, isAdmin: true, isSuspended: true },
+          select: { username: true, isAdmin: true, isSuspended: true, plan: true },
         });
         if (dbUser) {
           token.username = dbUser.username;
           token.isAdmin = dbUser.isAdmin;
           token.isSuspended = dbUser.isSuspended;
+          token.plan = dbUser.plan;
         }
       }
 
@@ -148,6 +150,7 @@ export const authConfig: NextAuthConfig = {
         session.user.username = token.username as string;
         session.user.isAdmin = token.isAdmin as boolean;
         session.user.isSuspended = token.isSuspended as boolean;
+        session.user.plan = (token.plan as string) ?? "free";
       }
       return session;
     },

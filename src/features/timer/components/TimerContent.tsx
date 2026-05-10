@@ -34,11 +34,16 @@ function formatElapsed(seconds: number): string {
   return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
 }
 
+let cachedNow = Date.now();
 function subscribeTick(listener: () => void) {
-  const id = setInterval(listener, 1000);
+  cachedNow = Date.now();
+  const id = setInterval(() => {
+    cachedNow = Date.now();
+    listener();
+  }, 1000);
   return () => clearInterval(id);
 }
-const getNow = () => Date.now();
+const getNow = () => cachedNow;
 const getServerNow = () => 0;
 
 export function TimerContent({ activeSession, goals }: Props) {

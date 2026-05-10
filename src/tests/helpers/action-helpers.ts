@@ -29,6 +29,7 @@ export function mockSession(overrides?: Partial<Session["user"]>): Session {
       username: "test-user",
       isAdmin: false,
       isSuspended: false,
+      plan: "free",
       ...overrides,
     },
     expires: new Date(Date.now() + 86_400_000).toISOString(),
